@@ -129,103 +129,115 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
         }
       }
       
-      // Upload files in batches of 5
+      // Set all files to uploading state
       const pendingFiles = files.filter(f => f.status !== 'complete');
-      const batchSize = 5;
-      const batches = Math.ceil(pendingFiles.length / batchSize);
       
-      for (let i = 0; i < batches; i++) {
-        const batchFiles = pendingFiles.slice(i * batchSize, (i + 1) * batchSize);
-        
-        // Upload this batch concurrently
-        await Promise.all(batchFiles.map(async (file) => {
-          try {
-            // Update status to uploading
-            setFiles(prev => prev.map(f => 
-              f.id === file.id ? { ...f, status: 'uploading' } : f
-            ));
-            
-            const formData = new FormData();
-            batchFiles.forEach(f => {
-              formData.append('pages', f.file);
-            });
-            formData.append('folioData', JSON.stringify(folioDataFinal));
-            
-            // Simulated upload progress
-            const uploadInterval = setInterval(() => {
-              setFiles(prev => prev.map(f => {
-                if (f.id === file.id && f.progress < 90) {
-                  return { ...f, progress: f.progress + 10 };
-                }
-                return f;
-              }));
-            }, 300);
-            
-            // Send the actual request
-            const response = await fetch('/api/admin/upload', {
-              method: 'POST',
-              body: formData,
-              credentials: 'include'
-            });
-            
-            clearInterval(uploadInterval);
-            
-            if (!response.ok) {
-              throw new Error(`Upload failed: ${response.statusText}`);
-            }
-            
-            const result = await response.json();
-            
-            // Update file status based on results
-            setFiles(prev => prev.map(f => {
-              if (batchFiles.some(bf => bf.id === f.id)) {
-                const fileResult = result.results.find(
-                  (r: any) => r.originalname === f.file.name
-                );
-                
-                if (fileResult?.success) {
-                  return { ...f, progress: 100, status: 'complete', folioNumber: fileResult.folioNumber };
-                } else {
-                  return { 
-                    ...f, 
-                    progress: 100, 
-                    status: 'error',
-                    error: fileResult?.error || 'Upload failed' 
-                  };
-                }
-              }
-              return f;
-            }));
-            
-          } catch (error) {
-            // Update status to error
-            setFiles(prev => prev.map(f => 
-              f.id === file.id ? { 
-                ...f, 
-                status: 'error', 
-                error: error instanceof Error ? error.message : 'Upload failed' 
-              } : f
-            ));
+      // Update all files to uploading status
+      setFiles(prev => prev.map(f => 
+        pendingFiles.some(pf => pf.id === f.id) ? { ...f, status: 'uploading' } : f
+      ));
+      
+      // Create a single FormData containing all files
+      const formData = new FormData();
+      pendingFiles.forEach(f => {
+        formData.append('pages', f.file);
+      });
+      formData.append('folioData', JSON.stringify(folioDataFinal));
+      
+      // Set up progress simulation
+      const progressInterval = setInterval(() => {
+        setFiles(prev => prev.map(f => {
+          if (pendingFiles.some(pf => pf.id === f.id) && f.progress < 90) {
+            return { ...f, progress: f.progress + 5 };
           }
+          return f;
         }));
+      }, 300);
+      
+      try {
+        // Send the actual request
+        const response = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        clearInterval(progressInterval);
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log("Upload response:", result);
+        
+        // Update all files based on results
+        setFiles(prev => prev.map(f => {
+          const fileResult = result.results?.find(
+            (r: any) => r.originalname === f.file.name
+          );
+          
+          if (fileResult?.success) {
+            return { 
+              ...f, 
+              progress: 100, 
+              status: 'complete', 
+              folioNumber: fileResult.folioNumber 
+            };
+          } else if (pendingFiles.some(pf => pf.id === f.id)) {
+            // Only update status for files that were pending
+            return { 
+              ...f, 
+              progress: 100, 
+              status: 'error',
+              error: fileResult?.error || 'Upload failed' 
+            };
+          }
+          return f;
+        }));
+      } catch (error) {
+        clearInterval(progressInterval);
+        
+        // Update status to error for all pending files
+        setFiles(prev => prev.map(f => 
+          pendingFiles.some(pf => pf.id === f.id) ? { 
+            ...f, 
+            status: 'error', 
+            progress: 100,
+            error: error instanceof Error ? error.message : 'Upload failed' 
+          } : f
+        ));
       }
       
-      // Check if all files uploaded successfully
-      const allSuccess = files.every(f => f.status === 'complete');
-      if (allSuccess) {
+      // Get latest file status
+      const currentFiles = files;
+      const completedFiles = currentFiles.filter(f => f.status === 'complete');
+      const failedFiles = currentFiles.filter(f => f.status === 'error');
+      
+      if (failedFiles.length === 0 && completedFiles.length > 0) {
         toast({
           title: "Upload complete",
-          description: `Successfully uploaded ${files.length} manuscript pages`
+          description: `Successfully uploaded ${completedFiles.length} manuscript pages`
         });
         
         if (onSuccess) {
           onSuccess();
         }
-      } else {
-        const errorCount = files.filter(f => f.status === 'error').length;
+      } else if (completedFiles.length > 0) {
         toast({
           title: "Upload partially complete",
-          description: `${errorCount} files failed to upload`,
+          description: `${completedFiles.length} files uploaded, ${failedFiles.length} failed`,
+          variant: "destructive"
+        });
+        
+        // Even with partial success, call the success callback
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast({
+          title: "Upload failed",
+          description: "No files were successfully uploaded",
           variant: "destructive"
         });
       }
