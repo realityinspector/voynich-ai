@@ -234,8 +234,6 @@ export const creditTransactionsRelations = relations(creditTransactions, ({ one 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-  role: true,
-  credits: true,
   stripeCustomerId: true,
   stripeSubscriptionId: true,
 });
