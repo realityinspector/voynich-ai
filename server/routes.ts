@@ -276,12 +276,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Extract folio number from filename or use provided data
           const folioNumber = folioData[file.originalname] || extractFolioNumber(file.originalname);
           
-          // Create the manuscript page entry
-          const page = await storage.createManuscriptPage({
-            folioNumber,
-            filename: file.filename,
-            uploadedBy: userId
-          });
+          // Check if a page with this folioNumber already exists
+          const existingPage = await storage.getManuscriptPageByFolio(folioNumber);
+          
+          let page;
+          if (existingPage) {
+            // Update the existing page with the new file
+            page = await storage.updateManuscriptPage(existingPage.id, {
+              filename: file.filename,
+              uploadedBy: userId
+            });
+          } else {
+            // Create a new manuscript page entry
+            page = await storage.createManuscriptPage({
+              folioNumber,
+              filename: file.filename,
+              uploadedBy: userId
+            });
+          }
           
           results.push({
             originalname: file.originalname,

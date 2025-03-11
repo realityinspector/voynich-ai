@@ -67,12 +67,12 @@ export default function Dashboard() {
     retry: false,
   });
   
-  // Mock statistics data - in a real implementation, this would come from the API
+  // Statistics data from API
   const stats = statsData?.stats || {
-    totalPages: 156,
-    totalSymbols: 12845,
-    totalAnnotations: 427,
-    totalAnalyses: 78,
+    totalPages: 0,
+    totalSymbols: 0,
+    totalAnnotations: 0, 
+    totalAnalyses: 0,
     userCredits: user?.credits || 0
   };
   
@@ -85,27 +85,12 @@ export default function Dashboard() {
   // Recent analyses
   const recentAnalyses = analysisData?.results?.slice(0, 5) || [];
   
-  // Chart data - in a real implementation, this would come from the API
-  const symbolData = [
-    { name: 'Herbal', value: 5243 },
-    { name: 'Astronomical', value: 2150 },
-    { name: 'Biological', value: 1872 },
-    { name: 'Cosmological', value: 1320 },
-    { name: 'Pharmaceutical', value: 1782 },
-    { name: 'Recipes', value: 478 },
-  ];
+  // Chart data
+  const symbolData = statsData?.symbolDistribution || [];
   
   const chartColors = ['#1a5276', '#d4ac0d', '#ca6f1e', '#2e86c1', '#28b463', '#cb4335'];
   
-  const activityTimelineData = [
-    { day: 'Mon', symbols: 212, annotations: 32 },
-    { day: 'Tue', symbols: 326, annotations: 45 },
-    { day: 'Wed', symbols: 187, annotations: 23 },
-    { day: 'Thu', symbols: 498, annotations: 67 },
-    { day: 'Fri', symbols: 423, annotations: 52 },
-    { day: 'Sat', symbols: 120, annotations: 18 },
-    { day: 'Sun', symbols: 89, annotations: 11 },
-  ];
+  const activityTimelineData = statsData?.activityTimeline || [];
   
   if (!isAuthenticated) {
     return null;
