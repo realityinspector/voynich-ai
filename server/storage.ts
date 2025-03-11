@@ -28,7 +28,7 @@ import {
   type InsertExtractionJob,
   type CreditTransaction
 } from "@shared/schema";
-import { eq, and, desc, asc, between, gte, lte, like, isNull, not, sql as sqlExpr } from "drizzle-orm";
+import { eq, and, desc, asc, between, gte, lte, like, isNull, not, sql as sqlExpr, count } from "drizzle-orm";
 import { db } from "./db";
 import { randomBytes, createHash } from "crypto";
 import { SharingOptions } from "@shared/types";
@@ -41,6 +41,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserProfile(id: number, data: Partial<User>): Promise<User>;
+  hasAnyUsers(): Promise<boolean>;
   
   // Manuscript page operations
   getManuscriptPage(id: number): Promise<ManuscriptPage | undefined>;
@@ -128,6 +129,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+  
+  async hasAnyUsers(): Promise<boolean> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(users);
+    return result.count > 0;
   }
 
   // Manuscript page operations
