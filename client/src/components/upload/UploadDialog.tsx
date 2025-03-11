@@ -137,17 +137,26 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
         pendingFiles.some(pf => pf.id === f.id) ? { ...f, status: 'uploading' } : f
       ));
       
-      // Create a single FormData containing all files
+      // Create a batch of files to upload (limited to 5 at a time)
+      const batchSize = 5;
+      const batches = Math.ceil(pendingFiles.length / batchSize);
+      
+      // Process files in batches of 5, up to 300 total
       const formData = new FormData();
-      pendingFiles.forEach(f => {
+      const filesToUpload = pendingFiles.slice(0, Math.min(300, pendingFiles.length));
+      
+      // Add each file to the form with the correct field name 'pages'
+      filesToUpload.forEach(f => {
         formData.append('pages', f.file);
       });
+      
+      // Add the folio data
       formData.append('folioData', JSON.stringify(folioDataFinal));
       
       // Set up progress simulation
       const progressInterval = setInterval(() => {
         setFiles(prev => prev.map(f => {
-          if (pendingFiles.some(pf => pf.id === f.id) && f.progress < 90) {
+          if (filesToUpload.some(pf => pf.id === f.id) && f.progress < 90) {
             return { ...f, progress: f.progress + 5 };
           }
           return f;
@@ -156,6 +165,7 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
       
       try {
         // Send the actual request
+        console.log(`Uploading ${filesToUpload.length} files in batch...`);
         const response = await fetch('/api/admin/upload', {
           method: 'POST',
           body: formData,
@@ -192,9 +202,10 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
                 status: 'complete' as const, 
                 folioNumber: fileResult.folioNumber 
               };
-            } else if (pendingFiles.some(pf => pf.id === f.id)) {
+            } else if (filesToUpload.some(pf => pf.id === f.id)) {
+              // This file was in our upload batch but has no success result
               failCount++;
-              // Only update status for files that were pending
+              // Only update status for files that were in this batch
               return { 
                 ...f, 
                 progress: 100, 
@@ -229,15 +240,21 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
       } catch (error) {
         clearInterval(progressInterval);
         
-        // Update status to error for all pending files
+        // Update status to error for all files in the current batch
         setFiles(prev => prev.map(f => 
-          pendingFiles.some(pf => pf.id === f.id) ? { 
+          filesToUpload.some(pf => pf.id === f.id) ? { 
             ...f, 
-            status: 'error', 
+            status: 'error' as const, 
             progress: 100,
             error: error instanceof Error ? error.message : 'Upload failed' 
           } : f
         ));
+        
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+          variant: "destructive"
+        });
       }
       
       // Success/error toasts are now handled immediately in the try block above

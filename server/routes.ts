@@ -263,52 +263,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Admin routes - Upload manuscript pages
-  app.post('/api/admin/upload', isAdmin, upload.array('pages', 20), async (req, res) => {
+  app.post('/api/admin/upload', isAdmin, upload.array('pages', 300), async (req, res) => {
     try {
       const userId = req.user!.id;
       const files = req.files as Express.Multer.File[];
       const folioData = req.body.folioData ? JSON.parse(req.body.folioData) : {};
       
+      console.log(`Received ${files.length} files for upload`);
+      
       const results: any[] = [];
       
-      for (const file of files) {
-        try {
-          // Extract folio number from filename or use provided data
-          const folioNumber = folioData[file.originalname] || extractFolioNumber(file.originalname);
-          
-          // Check if a page with this folioNumber already exists
-          const existingPage = await storage.getManuscriptPageByFolio(folioNumber);
-          
-          let page;
-          if (existingPage) {
-            // Update the existing page with the new file
-            page = await storage.updateManuscriptPage(existingPage.id, {
-              filename: file.filename,
-              uploadedBy: userId
-            });
-          } else {
-            // Create a new manuscript page entry
-            page = await storage.createManuscriptPage({
+      // Process files in chunks of 5 concurrently
+      const chunkSize = 5;
+      for (let i = 0; i < files.length; i += chunkSize) {
+        const chunk = files.slice(i, i + chunkSize);
+        
+        // Process each chunk concurrently
+        const chunkPromises = chunk.map(async (file) => {
+          try {
+            // Extract folio number from filename or use provided data
+            const folioNumber = folioData[file.originalname] || extractFolioNumber(file.originalname);
+            
+            // Check if a page with this folioNumber already exists
+            const existingPage = await storage.getManuscriptPageByFolio(folioNumber);
+            
+            let page;
+            if (existingPage) {
+              // Update the existing page with the new file
+              page = await storage.updateManuscriptPage(existingPage.id, {
+                filename: file.filename,
+                uploadedBy: userId
+              });
+            } else {
+              // Create a new manuscript page entry
+              page = await storage.createManuscriptPage({
+                folioNumber,
+                filename: file.filename,
+                uploadedBy: userId
+              });
+            }
+            
+            return {
+              originalname: file.originalname,
               folioNumber,
-              filename: file.filename,
-              uploadedBy: userId
-            });
+              id: page.id,
+              success: true
+            };
+          } catch (error) {
+            console.error(`Error processing file ${file.originalname}:`, error);
+            return {
+              originalname: file.originalname,
+              success: false,
+              error: error instanceof Error ? error.message : 'Failed to process file'
+            };
           }
-          
-          results.push({
-            originalname: file.originalname,
-            folioNumber,
-            id: page.id,
-            success: true
-          });
-        } catch (error) {
-          console.error(`Error processing file ${file.originalname}:`, error);
-          results.push({
-            originalname: file.originalname,
-            success: false,
-            error: 'Failed to process file'
-          });
-        }
+        });
+        
+        // Wait for all files in the current chunk to be processed
+        const chunkResults = await Promise.all(chunkPromises);
+        results.push(...chunkResults);
       }
       
       res.json({ results });
