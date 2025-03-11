@@ -1,0 +1,195 @@
+# Voynich Manuscript Analysis Platform
+
+A collaborative research platform for in-depth analysis of the mysterious Voynich Manuscript, featuring advanced symbol extraction, visualization, and page exploration tools.
+
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [User Guide](#user-guide)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
+
+## Overview
+
+The Voynich Manuscript Analysis Platform is a specialized tool designed for researchers, linguists, historians, and enthusiasts to collaborate on studying the enigmatic Voynich Manuscript (Yale MS408). This platform provides powerful analytical tools to extract, categorize, and analyze the unique symbols within the manuscript, fostering collaborative research efforts to potentially decode its mysteries.
+
+## Features
+
+### User Authentication
+- **Account Management**: Create and manage research accounts
+- **Profile Customization**: Add institutional affiliations and research interests
+- **Secure Authentication**: Protected access to research tools and collaborative features
+
+### Manuscript Viewer
+- **High-Resolution Page Browser**: Navigate through digitized manuscript pages
+- **Folio Navigation**: Quick access to specific manuscript sections
+- **Metadata Display**: View important details about each page and the manuscript
+
+### Symbol Extraction
+- **Automated Symbol Detection**: Computer vision algorithms to identify individual symbols
+- **Customizable Extraction Parameters**: Adjust threshold and minimum size settings
+- **Manual Validation**: Review and refine extracted symbols
+- **Batch Processing**: Process multiple pages sequentially
+
+### Symbol Analysis
+- **Symbol Categorization**: Group similar symbols based on visual characteristics
+- **Frequency Analysis**: Analyze symbol occurrence patterns throughout the manuscript
+- **Distribution Visualization**: View symbol distribution across pages and sections
+- **Symbol Relationships**: Identify potential patterns in symbol pairings and sequences
+
+### Annotation System
+- **Page Annotations**: Add contextual notes to specific manuscript regions
+- **Symbol Tagging**: Attach metadata and interpretations to individual symbols
+- **Collaborative Comments**: Discuss annotations with other researchers
+- **Annotation History**: Track changes and discussions over time
+
+### Research Notes
+- **Personal Research Notes**: Maintain private research documentation
+- **Public Notes Sharing**: Share findings with the research community
+- **Note Organization**: Categorize and search through research notes
+- **Rich Text Formatting**: Include images, links, and formatted text in notes
+
+### Analytics Dashboard
+- **Symbol Statistics**: View comprehensive symbol usage metrics
+- **Visual Analytics**: Interactive charts showing symbol distribution and patterns
+- **Research Activity**: Track community engagement and contribution metrics
+- **Comparative Analysis**: Compare symbol usage across different manuscript sections
+
+## Technology Stack
+
+### Frontend
+- React.js with TypeScript
+- Tailwind CSS with Shadcn UI components
+- TanStack React Query for data fetching
+- Recharts for data visualization
+
+### Backend
+- Express.js server
+- Drizzle ORM with PostgreSQL database
+- Passport.js for authentication
+- RESTful API architecture
+
+### Tools and Utilities
+- Computer vision algorithms for symbol extraction
+- Statistical analysis tools for pattern recognition
+- SVG generation for symbol representation
+- Memory storage with database persistence
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v16 or higher)
+- PostgreSQL database
+
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Set up the PostgreSQL database
+4. Start the development server:
+   ```
+   npm run dev
+   ```
+
+## User Guide
+
+### Registration and Login
+- Create a new account with username, email, and password
+- Log in with your credentials
+- Update your profile with institutional information
+
+### Exploring the Manuscript
+1. Navigate to the "Manuscript Viewer" section
+2. Select a page from the thumbnail navigator
+3. Use the zoom and pan controls to explore the high-resolution images
+4. Toggle between original and processed views
+
+### Extracting Symbols
+1. Navigate to the "Symbol Extraction Tool"
+2. Select a manuscript page
+3. Adjust extraction parameters if needed
+4. Start the extraction process
+5. Review the extracted symbols
+6. Save symbols to the database
+
+### Analyzing Symbols
+1. Navigate to the "Analysis Tools" section
+2. Select a manuscript or specific page for analysis
+3. View frequency, distribution, and relationship data
+4. Export analysis results for external use
+
+### Adding Annotations
+1. In the Manuscript Viewer, select the annotation tool
+2. Click and drag to create an annotation region
+3. Add your annotation text
+4. Save the annotation
+5. View and respond to other researchers' annotations
+
+### Managing Research Notes
+1. Navigate to the "Research Notes" section
+2. Create a new note with title and content
+3. Toggle privacy settings for public or private access
+4. Organize notes by tags or categories
+5. Search through your notes collection
+
+## API Documentation
+
+The platform provides a RESTful API for programmatic access to manuscript data and analysis tools.
+
+### Authentication Endpoints
+- `POST /api/auth/register`: Register a new user
+- `POST /api/auth/login`: Authenticate a user
+- `POST /api/auth/logout`: End a user session
+- `GET /api/auth/session`: Get current session information
+
+### Manuscript Endpoints
+- `GET /api/manuscripts`: List all available manuscripts
+- `GET /api/manuscripts/:id`: Get manuscript details
+- `POST /api/manuscripts`: Add a new manuscript (authenticated)
+- `GET /api/manuscripts/:manuscriptId/pages`: Get pages of a manuscript
+- `GET /api/manuscripts/:manuscriptId/symbols`: Get all symbols in a manuscript
+
+### Page Endpoints
+- `GET /api/pages/:id`: Get page details
+- `POST /api/pages`: Add a new page (authenticated)
+- `PATCH /api/pages/:id/process`: Process a page for symbol extraction
+- `GET /api/pages/:pageId/symbols`: Get symbols on a page
+- `GET /api/pages/:pageId/annotations`: Get annotations on a page
+
+### Symbol Endpoints
+- `GET /api/symbols/:id`: Get symbol details
+- `POST /api/symbols`: Add a new symbol (authenticated)
+
+### Annotation Endpoints
+- `POST /api/annotations`: Create a page annotation (authenticated)
+- `POST /api/annotations/:annotationId/comments`: Comment on an annotation (authenticated)
+
+### Notes Endpoints
+- `GET /api/notes`: Get user's research notes (authenticated)
+- `GET /api/notes/public`: Get publicly shared research notes
+- `GET /api/notes/:id`: Get a specific note
+- `POST /api/notes`: Create a new note (authenticated)
+- `PATCH /api/notes/:id`: Update a note (authenticated)
+- `DELETE /api/notes/:id`: Delete a note (authenticated)
+
+### Image Endpoints
+- `GET /api/images/manuscript/:manuscriptId/page/:folioNumber`: Get page image
+- `GET /api/images/manuscript/:manuscriptId/page/:folioNumber/thumbnail`: Get page thumbnail
+
+## Contributing
+
+Contributions to the Voynich Manuscript Analysis Platform are welcome. Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch
+3. Implement your feature or bug fix
+4. Add tests for your changes
+5. Submit a pull request
+
+---
+
+The Voynich Manuscript Analysis Platform is an open research tool designed to facilitate collaborative study of historical manuscripts. Join our community of researchers working to unravel one of history's most enduring mysteries.

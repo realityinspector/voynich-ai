@@ -1,0 +1,99 @@
+
+# Voynich Manuscript Analysis Tool
+
+## Overview
+
+The Voynich Manuscript Analysis Tool is a sophisticated system designed for extracting, analyzing, and classifying symbols and characters from ancient or undeciphered manuscripts, with specific optimizations for the Voynich Manuscript. This tool empowers researchers, linguists, cryptographers, and historians to perform detailed computational analysis on complex symbolic systems.
+
+## Features
+
+### Document Management
+- **PDF Upload and Management**: Import and organize multiple manuscript PDFs
+- **Page Navigation**: Browse through document pages with visual previews
+- **Document Metadata**: Track and display information about each uploaded manuscript
+
+### Symbol Extraction
+- **Configurable Extraction Parameters**: Customize thresholds, contour detection methods, and symbol size filters
+- **Optical Character Recognition (OCR)**: Attempt automatic identification of symbols using Tesseract OCR
+- **Batch Processing**: Process entire manuscripts or specific page ranges
+
+### Experiment Framework
+- **Configurable Experiments**: Create and save different extraction configurations
+- **Focused Analysis**: Run targeted experiments on specific page ranges
+- **Full Document Processing**: Apply successful configurations to entire manuscripts
+- **Progress Tracking**: Monitor processing status and completion percentage
+
+### Symbol Analysis
+- **Visual Symbol Browser**: View and scroll through all extracted symbols
+- **Similarity Grouping**: Automatically group visually similar symbols
+- **Feature Analysis**: Extract and compare advanced visual features:
+  - Shape metrics (aspect ratio, moments)
+  - Edge detection and contour analysis
+  - Histogram analysis
+  - ORB keypoint detection
+
+### Advanced Analysis Tools
+- **Symbol Comparison**: Compare any two symbols with detailed similarity metrics
+- **Frequency Analysis**: Analyze symbol distribution and occurrence patterns
+- **Distribution Visualization**: View symbol distribution across manuscript pages
+- **Symbol Network Analysis**: Explore relationships between similar symbols
+
+## Technical Capabilities
+
+### Image Processing Pipeline
+1. **Preprocessing**: PDF page conversion, grayscale transformation, noise reduction
+2. **Thresholding**: Multiple methods (Otsu, adaptive, simple) for binarization
+3. **Contour Detection**: Configurable algorithms for symbol boundary extraction
+4. **Symbol Isolation**: Extraction of individual symbols based on spatial parameters
+5. **Feature Extraction**: Computation of visual features and metrics
+
+### Data Organization
+- **Symbol Graphs**: NetworkX graph structures for symbol relationship modeling
+- **JSON Metadata**: Structured storage of symbol attributes and processing results
+- **Image Storage**: Organized storage of individual symbol images
+
+### Performance Optimization
+- **Parallel Processing**: Multithreaded extraction for faster processing
+- **Batch Operations**: Efficient memory management through batched processing
+- **Progress Streaming**: Real-time progress updates during lengthy operations
+
+## Value for Voynich Manuscript Research
+
+### Comprehensive Analysis
+This tool enables researchers to process the entire Voynich Manuscript systematically, extracting every symbol while preserving their context and relationships.
+
+### Pattern Discovery
+By automatically grouping similar symbols and providing frequency analysis, the tool can help identify patterns that might otherwise remain hidden to manual analysis.
+
+### Hypothesis Testing
+The configurable extraction parameters allow researchers to test different hypotheses about the nature of the manuscript's symbols and writing system.
+
+### Collaborative Research
+Results can be exported and shared, facilitating collaborative research efforts on this challenging manuscript.
+
+### Quantitative Foundation
+Provides objective, quantitative data to supplement qualitative interpretations, bringing computational rigor to manuscript analysis.
+
+## Getting Started
+
+1. **Upload the Voynich Manuscript PDF**: Use the "Upload New Document" button
+2. **Create an Extraction Configuration**: Set parameters appropriate for the Voynich's unique characteristics
+3. **Run an Experiment**: Test your configuration on a small page range
+4. **Process the Full Manuscript**: Once satisfied with results, process the entire document
+5. **Explore Analysis Tools**: Use the similarity groups, frequency analysis, and comparison tools to investigate patterns
+
+## Advanced Usage Tips
+
+- **Symbol Size Filtering**: The Voynich contains many small details that aren't true symbols; adjust minimum symbol width/height to filter appropriately
+- **OCR Limitations**: Be aware that OCR results will be speculative since the Voynich script is undeciphered
+- **Context Preservation**: When analyzing grouped symbols, refer back to their original page locations to understand contextual relationships
+- **Iteration**: Symbol extraction is an iterative process; refine your configurations based on initial results
+- **Multi-Configuration Analysis**: Compare results from different extraction configurations to ensure comprehensive coverage
+
+## Research Applications
+
+- **Writing System Analysis**: Identify character sets and potential grapheme boundaries
+- **Statistical Cryptanalysis**: Perform frequency analysis and pattern identification
+- **Linguistic Structure Detection**: Look for repeated patterns that might indicate word or sentence structures
+- **Comparative Analysis**: Compare Voynich symbols with known historical scripts
+- **Content Categorization**: Correlate symbol distributions with the manuscript's different sections and illustrations
