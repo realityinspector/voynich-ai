@@ -171,30 +171,61 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
         const result = await response.json();
         console.log("Upload response:", result);
         
+        console.log("Upload results:", result.results);
+        
         // Update all files based on results
-        setFiles(prev => prev.map(f => {
-          const fileResult = result.results?.find(
-            (r: any) => r.originalname === f.file.name
-          );
+        let successCount = 0;
+        let failCount = 0;
+        
+        setFiles(prev => {
+          const newFiles = prev.map(f => {
+            // Find this file in the results
+            const fileResult = result.results?.find(
+              (r: any) => r.originalname === f.file.name
+            );
+            
+            if (fileResult && fileResult.success) {
+              successCount++;
+              return { 
+                ...f, 
+                progress: 100, 
+                status: 'complete' as const, 
+                folioNumber: fileResult.folioNumber 
+              };
+            } else if (pendingFiles.some(pf => pf.id === f.id)) {
+              failCount++;
+              // Only update status for files that were pending
+              return { 
+                ...f, 
+                progress: 100, 
+                status: 'error' as const,
+                error: fileResult?.error || 'Upload failed' 
+              };
+            }
+            return f;
+          });
           
-          if (fileResult?.success) {
-            return { 
-              ...f, 
-              progress: 100, 
-              status: 'complete', 
-              folioNumber: fileResult.folioNumber 
-            };
-          } else if (pendingFiles.some(pf => pf.id === f.id)) {
-            // Only update status for files that were pending
-            return { 
-              ...f, 
-              progress: 100, 
-              status: 'error',
-              error: fileResult?.error || 'Upload failed' 
-            };
+          return newFiles;
+        });
+        
+        // Show success or error toast immediately
+        if (successCount > 0) {
+          toast({
+            title: failCount > 0 ? "Upload partially complete" : "Upload complete",
+            description: `${successCount} files uploaded successfully${failCount > 0 ? `, ${failCount} failed` : ''}`,
+            variant: failCount > 0 ? "destructive" : "default"
+          });
+          
+          if (onSuccess) {
+            onSuccess();
           }
-          return f;
-        }));
+        } else {
+          toast({
+            title: "Upload failed",
+            description: "No files were successfully uploaded",
+            variant: "destructive"
+          });
+        }
       } catch (error) {
         clearInterval(progressInterval);
         
@@ -209,38 +240,7 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
         ));
       }
       
-      // Get latest file status
-      const currentFiles = files;
-      const completedFiles = currentFiles.filter(f => f.status === 'complete');
-      const failedFiles = currentFiles.filter(f => f.status === 'error');
-      
-      if (failedFiles.length === 0 && completedFiles.length > 0) {
-        toast({
-          title: "Upload complete",
-          description: `Successfully uploaded ${completedFiles.length} manuscript pages`
-        });
-        
-        if (onSuccess) {
-          onSuccess();
-        }
-      } else if (completedFiles.length > 0) {
-        toast({
-          title: "Upload partially complete",
-          description: `${completedFiles.length} files uploaded, ${failedFiles.length} failed`,
-          variant: "destructive"
-        });
-        
-        // Even with partial success, call the success callback
-        if (onSuccess) {
-          onSuccess();
-        }
-      } else {
-        toast({
-          title: "Upload failed",
-          description: "No files were successfully uploaded",
-          variant: "destructive"
-        });
-      }
+      // Success/error toasts are now handled immediately in the try block above
     } catch (error) {
       toast({
         title: "Upload failed",
