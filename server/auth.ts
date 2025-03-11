@@ -112,12 +112,17 @@ export function setupAuthRoutes(app: express.Express) {
       // Hash password
       const hashedPassword = await hash(password, 10);
       
+      // Check if this is the first user (to make them admin)
+      const isFirstUser = !(await storage.hasAnyUsers());
+      
       // Create user
       const user = await storage.createUser({
         username,
         email,
         password: hashedPassword,
-        institution
+        institution,
+        role: isFirstUser ? 'admin' : 'user',
+        credits: 12 // Start with 12 free credits
       });
       
       // Log in the user
