@@ -1,75 +1,75 @@
-# Voynich Manuscript Research Platform
+# Voynich Research Platform
 
-## About the Project
-The Voynich Manuscript Research Platform is an advanced AI-powered tool designed to facilitate deep scholarly analysis of the Voynich Manuscript through cutting-edge technological integrations. This platform brings together machine learning, computer vision, and a collaborative research environment to help scholars unravel the mysteries of one of history's most enigmatic documents.
+An advanced AI-powered research platform for collaborative analysis of the Voynich Manuscript. This open-source project combines cutting-edge AI technology with collaborative research tools to enable deeper analysis of one of history's most mysterious documents.
 
-## Key Features
+## Features
 
-### 📚 Manuscript Visualization
-- High-resolution manuscript page viewer
-- Intuitive navigation between folios
-- Detailed page metadata and section categorization
-- Section-based filtering (herbal, astronomical, biological, etc.)
+- **Manuscript Visualization**: Browse high-resolution manuscript pages with intuitive navigation
+- **Symbol Extraction & Analysis**: Identify and categorize manuscript symbols using computer vision
+- **AI-Powered Analysis**: Utilize AI to detect patterns and propose interpretations
+- **Collaborative Research**: Contribute to and build upon community research with annotations and voting
+- **Advanced Research Tools**: Statistical analysis and cross-referencing between manuscript sections
+- **API & Integration**: Complete REST API for programmatic access and AI agent integration
 
-### 🔍 Symbol Extraction & Analysis
-- Automated symbol extraction using computer vision algorithms
-- Customizable extraction parameters for different manuscript sections
-- Symbol frequency analysis and pattern recognition
-- Symbol categorization and annotation capabilities
+## Technology Stack
 
-### 🤖 AI-Powered Analysis
-- Together AI integration for advanced pattern recognition
-- Custom AI prompts for specialized research questions
-- AI-assisted translation attempts and pattern analysis
-- Save, share, and collaborate on analysis results
-
-### ✏️ Collaborative Research Tools
-- User-created annotations on manuscript pages
-- Upvoting/downvoting system for community verification
-- Research notes with selective sharing options
-- Activity feed showing community contributions
-- Leaderboard to recognize top contributors
-
-### 🔑 API Access
-- API keys for programmatic access to manuscript data
-- Comprehensive API documentation
-- Usage tracking and management
-
-### 👥 User Roles and Access Tiers
-- **Researchers**: The default role for new users. Can browse the manuscript, view symbols, and read public annotations. Focus on research consumption.
-- **Contributors**: Can create annotations, notes, and run basic analysis. Enables active participation in the research community.
-- **Administrators**: Have full access to upload pages, extract symbols, and manage the platform. Limited to designated users like "realityinspector".
-
-## Technical Architecture
-- TypeScript/Node.js backend with Express
-- React frontend with modern UI components
-- PostgreSQL database for structured data storage
-- Computer vision algorithms for symbol extraction
-- AI integration for advanced analysis features
+- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI
+- **Backend**: Node.js, Express
+- **Database**: PostgreSQL with Drizzle ORM
+- **AI Integration**: Together AI
 
 ## Getting Started
-1. Register for an account to gain access to the platform
-2. Browse the manuscript pages in the viewer
-3. Explore existing symbols and annotations
-4. Create your own annotations and notes
-5. Use AI tools to analyze patterns and propose interpretations
 
-## Administrator Setup
-To grant administrator privileges to a user:
+### Prerequisites
 
-```bash
-# Run the admin setup script with a username
-node scripts/set-admin.js [username]
+- Node.js (v18+)
+- PostgreSQL
 
-# Or simply run without arguments to set "realityinspector" as admin
-node scripts/set-admin.js
-```
+### Installation
 
-This script will update the user's role to "admin" in the database, allowing them to:
-- Upload new manuscript pages
-- Extract symbols from pages using computer vision
-- Access administrative settings
-- Manage user permissions
+1. Clone the repository
+   ```
+   git clone https://github.com/realityinspector/voynich-ai.git
+   cd voynich-ai
+   ```
 
-## Join the Research Community
-The Voynich Manuscript has puzzled scholars for centuries. By joining our platform, you become part of a collaborative effort to decode this mysterious document through the combined power of human expertise and artificial intelligence.
+2. Install dependencies
+   ```
+   npm install
+   ```
+
+3. Set up environment variables
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   DATABASE_URL=postgresql://username:password@localhost:5432/voynich
+   TOGETHER_AI_API_KEY=your_together_ai_api_key
+   ```
+
+4. Run database migrations
+   ```
+   npm run db:push
+   ```
+
+5. Start the development server
+   ```
+   npm run dev
+   ```
+
+## Contributing
+
+We welcome contributions from the community! Whether you're interested in fixing bugs, adding new features, or improving documentation, your help is appreciated.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- The Beinecke Rare Book & Manuscript Library at Yale University for digitizing and making the Voynich Manuscript available for research
+- The community of researchers who have dedicated their efforts to understanding this enigmatic text

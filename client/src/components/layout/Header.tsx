@@ -71,6 +71,17 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, title, isAuthenticated
             <button className="text-neutral-600 hover:text-neutral-800">
               <HelpCircle className="h-5 w-5" />
             </button>
+            
+            {/* GitHub Link */}
+            <a 
+              href="https://github.com/realityinspector/voynich-ai" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-neutral-600 hover:text-neutral-800"
+              title="View on GitHub"
+            >
+              <Github className="h-5 w-5" />
+            </a>
           </div>
         </div>
         

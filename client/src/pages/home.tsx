@@ -10,7 +10,8 @@ import {
   Key,
   ScrollText,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Github
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "@/components/Logo";
@@ -35,6 +36,15 @@ export default function Home() {
           <Link href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
             API Docs
           </Link>
+          <a
+            href="https://github.com/realityinspector/voynich-ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Github className="h-4 w-4" />
+            <span>GitHub</span>
+          </a>
           <div className="flex items-center gap-4">
             <Link href="/login">
               <Button variant="outline">Log In</Button>
@@ -465,6 +475,81 @@ fetchPage(42)
         </div>
       </section>
 
+      {/* Open Source Section */}
+      <section className="px-6 py-16 bg-muted/30">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold font-heading mb-4">Open Source Project</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              The Voynich Research Platform is an open source project designed to foster collaboration and innovation in deciphering one of history's most enigmatic manuscripts.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div className="flex items-start">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0 mr-4">
+                  <Github className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium mb-2">GitHub Repository</h3>
+                  <p className="text-muted-foreground mb-3">
+                    Our entire codebase is available on GitHub. Fork the repository, submit pull requests, and help improve the platform for everyone.
+                  </p>
+                  <a 
+                    href="https://github.com/realityinspector/voynich-ai" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center text-primary hover:underline"
+                  >
+                    Visit the GitHub repository
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </a>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0 mr-4">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium mb-2">Community-Driven Research</h3>
+                  <p className="text-muted-foreground">
+                    Join our community of researchers, developers, linguists, and AI enthusiasts working together to unravel the mystery of the Voynich Manuscript through technology.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="flex items-start">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0 mr-4">
+                  <Key className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium mb-2">MIT Licensed</h3>
+                  <p className="text-muted-foreground">
+                    Our project is available under the MIT license, allowing you to freely use, modify, and distribute the code for both personal and commercial projects.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0 mr-4">
+                  <ScrollText className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium mb-2">Open Data Approach</h3>
+                  <p className="text-muted-foreground">
+                    We're committed to open research principles, making manuscript data, symbol analysis, and AI findings accessible to all for the advancement of knowledge.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="px-6 py-10 bg-background border-t">
         <div className="container mx-auto max-w-6xl">
@@ -473,8 +558,24 @@ fetchPage(42)
               <Logo size={24} />
               <span className="text-lg font-semibold">Voynich Research Platform</span>
             </div>
-            <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Voynich Research Platform. All rights reserved.
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+              <div className="flex items-center gap-4">
+                <a 
+                  href="https://github.com/realityinspector/voynich-ai" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                >
+                  <Github className="h-5 w-5" />
+                  <span>GitHub</span>
+                </a>
+                <Link href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
+                  API Docs
+                </Link>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} Voynich Research Platform. Open Source under MIT License.
+              </div>
             </div>
           </div>
         </div>
