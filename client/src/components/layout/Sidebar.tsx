@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/">
                 <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                   location === '/' 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Home className="mr-3 h-5 w-5 text-secondary" />
@@ -106,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/manuscript">
                 <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                   location === '/manuscript' 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <BookOpen className="mr-3 h-5 w-5 text-secondary" />
@@ -120,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                 onClick={() => setSymbolsExpanded(!symbolsExpanded)}
                 className={`flex items-center justify-between w-full px-2 py-2 text-sm font-medium rounded-md ${
                   (location === '/symbols' || symbolsExpanded) 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}
               >
@@ -160,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/annotations">
                 <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                   location === '/annotations' 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <MessageSquare className="mr-3 h-5 w-5 text-secondary" />
