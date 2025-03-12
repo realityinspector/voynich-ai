@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Cog, Check, RefreshCw } from 'lucide-react';
+import { X, Cog, Check, RefreshCw, Shield } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useManuscript } from '@/hooks/useManuscript';
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 
 interface SymbolExtractionProps {
@@ -35,6 +36,7 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
 }) => {
   const { toast } = useToast();
   const { useManuscriptPages } = useManuscript();
+  const { isAdmin } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [step, setStep] = useState(1);
@@ -181,9 +183,35 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-heading">Symbol Extraction Tool</DialogTitle>
+          {!isAdmin && (
+            <div className="bg-amber-50 text-amber-800 p-3 rounded-md mt-2 flex items-start">
+              <Shield className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Administrator Access Required</p>
+                <p className="text-sm mt-1">Symbol extraction is restricted to administrators. Please contact an administrator if you need to extract symbols.</p>
+              </div>
+            </div>
+          )}
         </DialogHeader>
         
         <div className="flex flex-col lg:flex-row gap-6">
+          {!isAdmin ? (
+            <div className="w-full py-8 text-center">
+              <Shield className="h-10 w-10 mx-auto text-amber-500 mb-4" />
+              <p className="text-neutral-600 max-w-lg mx-auto">
+                You don't have access to the symbol extraction functionality. Please contact an administrator 
+                if you need to extract symbols from manuscript pages.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="mt-6"
+              >
+                Close
+              </Button>
+            </div>
+          ) : (
+          <>
           {/* Configuration Panel */}
           <div className="lg:w-1/3">
             <div className="border border-neutral-200 rounded-lg p-4">
@@ -520,6 +548,8 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
               )}
             </div>
           </div>
+          </>
+          )}
         </div>
         
         <DialogFooter>
