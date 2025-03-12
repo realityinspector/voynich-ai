@@ -257,6 +257,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Endpoint to fetch all symbols for reference selection
   app.get('/api/symbols/all', isAuthenticated, async (req, res) => {
+    // Redirect to the new endpoint for compatibility
+    res.redirect('/api/symbols/page/all');
+  });
+  
+  // New endpoint for getting all symbols from all pages
+  app.get('/api/symbols/page/all', isAuthenticated, async (req, res) => {
     try {
       const pages = await storage.listManuscriptPages();
       let allSymbols: any[] = [];

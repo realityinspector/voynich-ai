@@ -27,13 +27,13 @@ export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelec
 
   // Fetch manuscript pages
   const { data: pagesData } = useQuery({
-    queryKey: ['/api/manuscript/pages'],
+    queryKey: ['/api/pages'],
     retry: false,
   });
   
   // Fetch all symbols (expensive operation, but useful for reference)
   const { data: symbolsData } = useQuery({
-    queryKey: ['/api/symbols/all'],
+    queryKey: ['/api/symbols/page/all'],  // This will need to be implemented
     retry: false,
   });
   
