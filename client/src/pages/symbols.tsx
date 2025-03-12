@@ -424,7 +424,7 @@ export default function Symbols() {
               ) : (
                 <div>
                   <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
-                    {filteredSymbols.map((symbol) => (
+                    {filteredSymbols.map((symbol: any) => (
                       <div 
                         key={symbol.id} 
                         className="aspect-square border border-neutral-200 rounded-md bg-neutral-50 flex items-center justify-center relative hover:border-primary cursor-pointer group"
