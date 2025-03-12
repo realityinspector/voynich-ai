@@ -67,6 +67,17 @@ function Router() {
         </AppLayout>
       </Route>
       
+      {/* Redirect from old path to new path */}
+      <Route path="/manuscript-viewer">
+        {() => {
+          const [_, setLocation] = useLocation();
+          useEffect(() => {
+            setLocation('/manuscript');
+          }, []);
+          return null;
+        }}
+      </Route>
+      
       <Route path="/symbols">
         <AppLayout>
           <Symbols />
