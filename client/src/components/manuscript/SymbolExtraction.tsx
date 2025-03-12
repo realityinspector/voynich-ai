@@ -204,6 +204,7 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                           preset: value,
                           threshold: 150,
                           minSize: 20,
+                          maxSize: 64,
                           ignoreMargins: true
                         });
                       } else if (value === 'high-recall') {
@@ -212,6 +213,7 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                           preset: value,
                           threshold: 100,
                           minSize: 8,
+                          maxSize: 128,
                           ignoreMargins: false
                         });
                       } else {
@@ -220,6 +222,7 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                           preset: value,
                           threshold: 128,
                           minSize: 16,
+                          maxSize: 64,
                           ignoreMargins: true
                         });
                       }
