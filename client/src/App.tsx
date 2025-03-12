@@ -81,6 +81,9 @@ function Router() {
         )}
       </Route>
       
+      {/* Public API documentation */}
+      <Route path="/api-docs" component={ApiDocs} />
+      
       {/* Auth routes - no layout */}
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
@@ -125,12 +128,6 @@ function Router() {
       <Route path="/gallery">
         <AppLayout>
           <Gallery />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/api-docs">
-        <AppLayout>
-          <ApiDocs />
         </AppLayout>
       </Route>
       

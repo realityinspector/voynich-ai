@@ -31,14 +31,19 @@ export default function Home() {
           <Logo />
           <span className="text-xl font-semibold">Voynich Research Platform</span>
         </div>
-        <div className="ml-auto flex items-center gap-4">
-          <Link href="/login">
-            <Button variant="outline">Log In</Button>
+        <nav className="ml-auto flex items-center gap-6">
+          <Link href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
+            API Docs
           </Link>
-          <Link href="/register">
-            <Button>Register</Button>
-          </Link>
-        </div>
+          <div className="flex items-center gap-4">
+            <Link href="/login">
+              <Button variant="outline">Log In</Button>
+            </Link>
+            <Link href="/register">
+              <Button>Register</Button>
+            </Link>
+          </div>
+        </nav>
       </header>
 
       {/* Hero Section */}
@@ -246,6 +251,134 @@ export default function Home() {
                 </ul>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* API Section */}
+      <section className="px-6 py-20 bg-background">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold font-heading mb-4">Developer API</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Integrate the Voynich Manuscript data into your own applications with our comprehensive REST API.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <h3 className="text-xl font-medium">Build Innovative Research Tools</h3>
+              <p className="text-muted-foreground">
+                Access our extensive dataset of manuscript pages, symbols, and annotations through a simple and powerful REST API.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-0.5 shrink-0 mr-3">
+                    <CheckCircle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Symbol Data</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Access extracted symbols with position, category, and frequency data
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-0.5 shrink-0 mr-3">
+                    <CheckCircle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Pattern Analysis</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Incorporate AI-analyzed pattern data into your research workflows
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mt-0.5 shrink-0 mr-3">
+                    <CheckCircle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Collaborative Research</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Integrate with community annotations and discoveries
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Link href="/api-docs">
+                  <Button className="gap-2">
+                    View Full API Documentation
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            
+            <div className="lg:col-span-3 overflow-hidden rounded-lg border bg-card shadow">
+              <div className="border-b bg-muted/50 px-4 py-2 font-mono text-sm flex justify-between items-center">
+                <span>Example: Fetch Manuscript Page</span>
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                  <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+                  <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                </div>
+              </div>
+              <div className="overflow-auto bg-black p-4 font-mono text-sm text-white">
+                <pre className="whitespace-pre-wrap">
+{`// Fetch a specific manuscript page by ID
+const fetchPage = async (pageId) => {
+  const response = await fetch(\`https://api.voynich-research.com/v1/pages/\${pageId}\`, {
+    headers: {
+      'Authorization': 'Bearer YOUR_API_KEY',
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch page data');
+  }
+  
+  const pageData = await response.json();
+  
+  console.log(\`Loaded page \${pageData.folioNumber}\`);
+  console.log(\`Section: \${pageData.section}\`);
+  console.log(\`Dimensions: \${pageData.width}x\${pageData.height}\`);
+  
+  // Now fetch symbols for this page
+  const symbolsResponse = await fetch(
+    \`https://api.voynich-research.com/v1/symbols/page/\${pageId}\`,
+    {
+      headers: {
+        'Authorization': 'Bearer YOUR_API_KEY',
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  
+  const symbols = await symbolsResponse.json();
+  
+  console.log(\`Found \${symbols.length} symbols on this page\`);
+  console.log(\`Categories: \${[...new Set(symbols.map(s => s.category))].join(', ')}\`);
+  
+  return { page: pageData, symbols };
+};
+
+// Example usage
+fetchPage(42)
+  .then(({ page, symbols }) => {
+    // Process the page data and symbols in your application
+    renderVoynichPage(page, symbols);
+  })
+  .catch(error => console.error('Error:', error));`}
+                </pre>
+              </div>
+            </div>
           </div>
         </div>
       </section>
