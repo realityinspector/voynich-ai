@@ -124,6 +124,9 @@ router.post('/analyze', isAuthenticated, async (req, res) => {
       `AI analysis on page ${page.folioNumber} with model ${modelParams.model}`
     );
     
+    // Generate a unique token for this analysis result if public
+    const shareToken = isPublic ? generateUniqueToken() : null;
+    
     // Save the analysis result
     const analysisResult = await storage.createAnalysisResult({
       userId,
@@ -132,12 +135,26 @@ router.post('/analyze', isAuthenticated, async (req, res) => {
       prompt,
       result: aiResult,
       isPublic,
-      model: modelParams.model
+      model: modelParams.model,
+      shareToken
     });
+    
+    // Create an activity entry for the new analysis
+    await storage.createActivityFeedEntry({
+      userId,
+      type: 'analysis_created',
+      entityId: analysisResult.id,
+      entityType: 'analysis',
+      isPublic: !!isPublic
+    });
+    
+    // Create the URL for redirecting
+    const analysisUrl = `/analysis/${analysisResult.id}`;
     
     res.json({
       result: analysisResult,
-      remainingCredits: await storage.getUserCredits(userId)
+      remainingCredits: await storage.getUserCredits(userId),
+      analysisUrl
     });
     
   } catch (error) {
@@ -379,5 +396,40 @@ Guidelines:
     throw new Error('Failed to query AI model');
   }
 }
+
+// Helper function to generate a unique token for sharing
+function generateUniqueToken(): string {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+}
+
+// Get specific analysis result by ID
+router.get('/analysis/:id', async (req: Request, res: Response) => {
+  try {
+    const analysisId = parseInt(req.params.id);
+    if (isNaN(analysisId)) {
+      return res.status(400).json({ message: 'Invalid analysis ID' });
+    }
+    
+    const analysis = await storage.getAnalysisResult(analysisId);
+    if (!analysis) {
+      return res.status(404).json({ message: 'Analysis not found' });
+    }
+    
+    // Check if user has permission to view this analysis
+    const isOwner = req.user && (req.user as any).id === analysis.userId;
+    if (!analysis.isPublic && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to view this analysis' });
+    }
+    
+    // Get page info for context
+    const page = await storage.getManuscriptPage(analysis.pageId);
+    
+    return res.json({ analysis, page });
+  } catch (error) {
+    console.error('Error fetching analysis:', error);
+    return res.status(500).json({ message: 'Failed to fetch analysis result' });
+  }
+});
 
 export default router;

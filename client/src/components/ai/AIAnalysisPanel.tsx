@@ -118,6 +118,11 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
         title: "Analysis complete",
         description: "AI analysis has been completed successfully"
       });
+      
+      // Redirect to the analysis result page
+      if (data.result?.id) {
+        window.location.href = `/analysis/${data.result.id}`;
+      }
     },
     onError: (error) => {
       toast({
