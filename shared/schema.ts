@@ -83,6 +83,12 @@ export const annotations = pgTable("annotations", {
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   content: text("content").notNull(),
+  upvotes: integer("upvotes").default(0).notNull(),
+  downvotes: integer("downvotes").default(0).notNull(),
+  score: integer("score").default(0).notNull(),
+  source: text("source").default('manual'), // 'manual', 'api', 'llm'
+  isPublic: boolean("is_public").default(true).notNull(),
+  apiKeyId: integer("api_key_id").references(() => apiKeys.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -97,6 +103,10 @@ export const annotationsRelations = relations(annotations, ({ one, many }) => ({
     references: [users.id],
   }),
   comments: many(annotationComments),
+  apiKey: one(apiKeys, {
+    fields: [annotations.apiKeyId],
+    references: [apiKeys.id],
+  }),
 }));
 
 export const annotationComments = pgTable("annotation_comments", {
@@ -114,6 +124,26 @@ export const annotationCommentsRelations = relations(annotationComments, ({ one 
   }),
   user: one(users, {
     fields: [annotationComments.userId],
+    references: [users.id],
+  }),
+}));
+
+// Annotation voting system
+export const annotationVotes = pgTable("annotation_votes", {
+  id: serial("id").primaryKey(),
+  annotationId: integer("annotation_id").references(() => annotations.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  voteType: text("vote_type").notNull(), // 'upvote' or 'downvote'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const annotationVotesRelations = relations(annotationVotes, ({ one }) => ({
+  annotation: one(annotations, {
+    fields: [annotationVotes.annotationId],
+    references: [annotations.id],
+  }),
+  user: one(users, {
+    fields: [annotationVotes.userId],
     references: [users.id],
   }),
 }));
