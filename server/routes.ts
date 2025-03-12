@@ -284,6 +284,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Extract folio number from filename or use provided data
             const folioNumber = folioData[file.originalname] || extractFolioNumber(file.originalname);
             
+            // Extract the numeric ID from the folio number
+            const pageId = getPageIdFromFolio(folioNumber);
+            
             // Check if a page with this folioNumber already exists
             const existingPage = await storage.getManuscriptPageByFolio(folioNumber);
             
@@ -295,8 +298,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 uploadedBy: userId
               });
             } else {
-              // Create a new manuscript page entry
+              // Create a new manuscript page entry with the specified ID from folio number
               page = await storage.createManuscriptPage({
+                id: pageId,
                 folioNumber,
                 filename: file.filename,
                 uploadedBy: userId
@@ -432,6 +436,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Format as standard folio number
     return `${parseInt(numberMatch[0])}${side}`;
+  }
+  
+  // Get page ID from folio number
+  function getPageIdFromFolio(folioNumber: string): number {
+    // Extract the numeric part from folio number (e.g., "10r" -> 10)
+    const match = folioNumber.match(/^(\d+)[rv]$/i);
+    if (!match) {
+      throw new Error(`Invalid folio number format: ${folioNumber}`);
+    }
+    return parseInt(match[1]);
   }
   
   return httpServer;
