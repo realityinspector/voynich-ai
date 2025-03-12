@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/">
                 <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/' 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Home className="mr-3 h-5 w-5 text-secondary" />
@@ -106,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/manuscript">
                 <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/manuscript' 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <BookOpen className="mr-3 h-5 w-5 text-secondary" />
@@ -120,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                 onClick={() => setSymbolsExpanded(!symbolsExpanded)}
                 className={`flex items-center justify-between w-full px-2 py-2 text-sm font-medium rounded-md ${
                   (location === '/symbols' || symbolsExpanded) 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}
               >
@@ -160,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/annotations">
                 <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/annotations' 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <MessageSquare className="mr-3 h-5 w-5 text-secondary" />
@@ -173,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/analysis">
                 <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/analysis' 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Bot className="mr-3 h-5 w-5 text-secondary" />
@@ -189,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/gallery">
                 <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/gallery' 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Images className="mr-3 h-5 w-5 text-secondary" />
@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/api-docs">
                 <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/api-docs' 
-                    ? 'bg-opacity-75 bg-secondary text-white' 
+                    ? 'bg-secondary text-primary-50 font-semibold' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Code className="mr-3 h-5 w-5 text-secondary" />
@@ -222,7 +222,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                   <Link href="/admin/upload">
                     <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                       location === '/admin/upload' 
-                        ? 'bg-opacity-75 bg-secondary text-white' 
+                        ? 'bg-secondary text-primary-50 font-semibold' 
                         : 'text-white hover:bg-primary-700'
                     }`}>
                       <Upload className="mr-3 h-5 w-5 text-secondary" />
@@ -235,7 +235,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                   <Link href="/admin/settings">
                     <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                       location === '/admin/settings' 
-                        ? 'bg-opacity-75 bg-secondary text-white' 
+                        ? 'bg-secondary text-primary-50 font-semibold' 
                         : 'text-white hover:bg-primary-700'
                     }`}>
                       <Settings className="mr-3 h-5 w-5 text-secondary" />

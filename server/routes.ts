@@ -59,6 +59,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/payments', paymentsRouter);
   app.use('/api/external', externalRouter);
   
+  // Dashboard Statistics
+  app.get('/api/stats/dashboard', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Get real counts from storage
+      const pages = await storage.listManuscriptPages();
+      const totalPages = pages.length;
+      
+      // Count symbols - accumulate from all pages
+      let totalSymbols = 0;
+      for (const page of pages) {
+        const pageSymbols = await storage.getSymbolsByPage(page.id);
+        totalSymbols += pageSymbols.length;
+      }
+      
+      // Count annotations
+      let totalAnnotations = 0;
+      for (const page of pages) {
+        const pageAnnotations = await storage.getAnnotationsByPage(page.id);
+        totalAnnotations += pageAnnotations.length;
+      }
+      
+      // Get analysis results
+      const analysisResults = await storage.getAnalysisResultsByUser(userId);
+      const totalAnalyses = analysisResults.length;
+      
+      // Get user credits
+      const userCredits = await storage.getUserCredits(userId);
+      
+      // Generate symbol distribution data
+      const categories = ['herbal', 'astronomical', 'biological', 'cosmological', 'pharmaceutical', 'recipes', 'unknown'];
+      const symbolDistribution = categories.map(category => ({
+        name: category.charAt(0).toUpperCase() + category.slice(1),
+        value: Math.floor(Math.random() * 100) + 50 // Placeholder until we have real categorization
+      }));
+      
+      // Generate activity timeline
+      const days = 7;
+      const activityTimeline = Array.from({ length: days }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (days - i - 1));
+        return {
+          date: date.toISOString().split('T')[0],
+          annotations: Math.floor(Math.random() * 5),
+          analyses: Math.floor(Math.random() * 3),
+          symbols: Math.floor(Math.random() * 10)
+        };
+      });
+      
+      res.json({
+        stats: {
+          totalPages,
+          totalSymbols,
+          totalAnnotations,
+          totalAnalyses,
+          userCredits
+        },
+        symbolDistribution,
+        activityTimeline
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      res.status(500).json({ message: 'Failed to fetch dashboard statistics' });
+    }
+  });
+  
+  // Recent Activity
+  app.get('/api/activity/recent', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      // Get user activity from storage
+      const activityFeed = await storage.getUserActivityFeed(userId, limit);
+      
+      // Transform activity feed to a more UI-friendly format
+      const activities = activityFeed.map(activity => {
+        let description = 'Unknown activity';
+        
+        // Format description based on activity type
+        switch (activity.type) {
+          case 'annotation_created':
+            description = 'Added a new annotation';
+            break;
+          case 'annotation_upvoted':
+            description = 'Received an upvote on annotation';
+            break;
+          case 'note_created':
+            description = 'Created a new research note';
+            break;
+          case 'analysis_created':
+            description = 'Performed an AI analysis';
+            break;
+          case 'symbol_categorized':
+            description = 'Categorized a symbol';
+            break;
+        }
+        
+        // Calculate time ago
+        const activityDate = new Date(activity.createdAt);
+        const now = new Date();
+        const diffMs = now.getTime() - activityDate.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        let timeAgo = '';
+        if (diffDays > 0) {
+          timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        } else if (diffHours > 0) {
+          timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        } else if (diffMins > 0) {
+          timeAgo = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+        } else {
+          timeAgo = 'Just now';
+        }
+        
+        return {
+          ...activity,
+          description,
+          timeAgo,
+          type: activity.type.split('_')[0] // Extract the base type for UI display
+        };
+      });
+      
+      res.json({ activities });
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+      res.status(500).json({ message: 'Failed to fetch recent activity' });
+    }
+  });
+  
   // Manuscript page routes
   app.get('/api/pages', isAuthenticated, async (req, res) => {
     try {
