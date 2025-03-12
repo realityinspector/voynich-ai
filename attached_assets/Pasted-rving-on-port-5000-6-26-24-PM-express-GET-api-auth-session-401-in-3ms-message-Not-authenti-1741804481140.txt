@@ -1,0 +1,78 @@
+rving on port 5000
+6:26:24 PM [express] GET /api/auth/session 401 in 3ms :: {"message":"Not authenticated"}
+6:26:26 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+6:26:26 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+6:33:51 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+6:33:51 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+6:33:59 PM [express] POST /api/auth/login 200 in 1211ms :: {"user":{"id":1,"username":"realityinspec…
+6:33:59 PM [express] GET /api/auth/session 304 in 105ms :: {"user":{"id":1,"username":"realityinspec…
+6:33:59 PM [express] GET /api/auth/session 304 in 62ms :: {"user":{"id":1,"username":"realityinspect…
+6:33:59 PM [express] GET /api/ai/credits 304 in 322ms :: {"credits":12}
+Storage: Retrieved 5 manuscript pages from database
+Returning 5 manuscript pages
+6:33:59 PM [express] GET /api/pages 304 in 260ms :: {"pages":[{"id":100,"folioNumber":"100r","filena…
+Error fetching recent activity: NeonDbError: relation "activity_feed" does not exist
+    at execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:68:18)
+    at async DatabaseStorage.getUserActivityFeed (/home/runner/workspace/server/storage.ts:746:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:136:28) {
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '104',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable',
+  sourceError: undefined
+}
+6:33:59 PM [express] GET /api/activity/recent 500 in 295ms :: {"message":"Failed to fetch recent act…
+6:33:59 PM [express] GET /api/ai/results 304 in 289ms :: {"results":[]}
+Storage: Retrieved 209 manuscript pages from database
+6:34:01 PM [express] GET /api/auth/session 304 in 61ms :: {"user":{"id":1,"username":"realityinspect…
+6:34:02 PM [express] GET /api/extraction/jobs 200 in 123ms :: {"jobs":[{"id":11,"userId":1,"startPag…
+Storage: Retrieved 209 manuscript pages from database
+Returning 209 manuscript pages
+6:34:02 PM [express] GET /api/pages 304 in 178ms :: {"pages":[{"id":100,"folioNumber":"100r","filena…
+6:34:02 PM [express] GET /api/symbols/page/100 304 in 124ms :: {"symbols":[{"id":2274,"pageId":100,"…
+6:34:02 PM [express] GET /api/pages/100 304 in 136ms :: {"page":{"id":100,"folioNumber":"100r","file…
+6:34:09 PM [express] GET /api/auth/session 304 in 60ms :: {"user":{"id":1,"username":"realityinspect…
+Storage: Retrieved 209 manuscript pages from database
+Returning 209 manuscript pages
+6:34:09 PM [express] GET /api/pages 304 in 122ms :: {"pages":[{"id":100,"folioNumber":"100r","filena…
+6:34:09 PM [express] GET /api/pages/1 304 in 121ms :: {"page":{"id":1,"folioNumber":"1r","filename":…
+6:34:09 PM [express] GET /api/symbols/page/1 200 in 130ms :: {"symbols":[{"id":158,"pageId":1,"image…
+6:34:09 PM [express] GET /api/annotations/page/1 304 in 124ms :: {"annotations":[]}
+6:34:12 PM [express] GET /api/auth/session 304 in 59ms :: {"user":{"id":1,"username":"realityinspect…
+6:34:12 PM [express] GET /api/manuscript/pages 200 in 67ms
+6:34:12 PM [express] GET /api/ai/models 304 in 65ms :: {"models":[{"id":"mixtral-8x7b-instruct","nam…
+Storage: Retrieved 209 manuscript pages from database
+6:34:12 PM [express] GET /api/ai/results 304 in 120ms :: {"results":[]}
+6:34:25 PM [express] GET /api/symbols/all 200 in 13545ms :: {"symbols":[{"id":2274,"pageId":100,"x":…
+6:34:26 PM [express] GET /api/stats/dashboard 200 in 26842ms :: {"stats":{"totalPages":209,"totalSym…
+Together AI query error: Error: Together AI API error: 401 {
+  "id": "nkkJHXq-4yUbBN-91f5633cb8f8def5",
+  "error": {
+    "message": "Invalid API key provided. You can find your API key at https://api.together.xyz/settings/api-keys.",
+    "type": "invalid_request_error",
+    "param": null,
+    "code": "invalid_api_key"
+  }
+}
+    at queryTogetherAI (/home/runner/workspace/server/api/ai.ts:285:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/api/ai.ts:120:22)
+AI analysis error: Error: Failed to query AI model
+    at queryTogetherAI (/home/runner/workspace/server/api/ai.ts:293:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/api/ai.ts:120:22)
+6:34:47 PM [express] POST /api/ai/analyze 500 in 728ms :: {"message":"Failed to perform AI analysis"}
