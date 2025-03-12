@@ -47,24 +47,28 @@ export default function Dashboard() {
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/stats/dashboard'],
     retry: false,
+    enabled: isAuthenticated,
   });
   
   // Fetch recent activity
   const { data: activityData, isLoading: activityLoading } = useQuery({
     queryKey: ['/api/activity/recent'],
     retry: false,
+    enabled: isAuthenticated,
   });
   
   // Fetch pages statistics
   const { data: pagesData, isLoading: pagesLoading } = useQuery({
     queryKey: ['/api/pages?limit=5'],
     retry: false,
+    enabled: isAuthenticated,
   });
   
   // Fetch recent analysis results
   const { data: analysisData, isLoading: analysisLoading } = useQuery({
-    queryKey: ['/api/ai/results'],
+    queryKey: ['/api/ai/results?limit=5'],
     retry: false,
+    enabled: isAuthenticated,
   });
   
   // Statistics data from API
@@ -250,10 +254,11 @@ export default function Dashboard() {
                     recentActivity.map((activity: any, i: number) => (
                       <div key={i} className="flex items-start space-x-3">
                         <div className="bg-primary/10 h-8 w-8 rounded-full flex items-center justify-center">
-                          {activity.type === 'extraction' && <Puzzle className="h-4 w-4 text-primary" />}
-                          {activity.type === 'annotation' && <MessageSquare className="h-4 w-4 text-primary" />}
-                          {activity.type === 'analysis' && <Bot className="h-4 w-4 text-primary" />}
-                          {activity.type === 'upload' && <Upload className="h-4 w-4 text-primary" />}
+                          {activity.type === 'symbol_categorized' && <Puzzle className="h-4 w-4 text-primary" />}
+                          {activity.type === 'annotation_created' && <MessageSquare className="h-4 w-4 text-primary" />}
+                          {activity.type === 'annotation_upvoted' && <MessageSquare className="h-4 w-4 text-primary" />}
+                          {activity.type === 'note_created' && <MessageSquare className="h-4 w-4 text-primary" />}
+                          {activity.type === 'analysis_created' && <Bot className="h-4 w-4 text-primary" />}
                         </div>
                         <div>
                           <p className="text-sm font-medium">{activity.description}</p>
@@ -462,14 +467,7 @@ export default function Dashboard() {
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={[
-                      { month: 'Jan', analyses: 5, annotations: 12, symbols: 230 },
-                      { month: 'Feb', analyses: 8, annotations: 17, symbols: 340 },
-                      { month: 'Mar', analyses: 12, annotations: 23, symbols: 278 },
-                      { month: 'Apr', analyses: 14, annotations: 30, symbols: 390 },
-                      { month: 'May', analyses: 18, annotations: 41, symbols: 450 },
-                      { month: 'Jun', analyses: 24, annotations: 48, symbols: 520 },
-                    ]}
+                    data={statsData?.activityTrends || []}
                     margin={{
                       top: 5,
                       right: 30,
@@ -495,13 +493,20 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { username: 'realityinspector', role: 'Admin', contributions: 248 },
-                    { username: 'dr_smith', role: 'Researcher', contributions: 187 },
-                    { username: 'linguist42', role: 'Researcher', contributions: 156 },
-                    { username: 'historybuff', role: 'Researcher', contributions: 134 },
-                    { username: 'codebreaker', role: 'Researcher', contributions: 112 },
-                  ].map((researcher, i) => (
+                  {statsLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="ml-3">
+                            <Skeleton className="h-4 w-24 mb-1" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    ))
+                  ) : (statsData?.topResearchers || []).map((researcher, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
@@ -528,13 +533,20 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { folio: '1r', views: 842, section: 'Herbal' },
-                    { folio: '68r', views: 763, section: 'Astronomical' },
-                    { folio: '78v', views: 714, section: 'Biological' },
-                    { folio: '42r', views: 698, section: 'Pharmaceutical' },
-                    { folio: '116v', views: 645, section: 'Recipes' },
-                  ].map((page, i) => (
+                  {statsLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="ml-3">
+                            <Skeleton className="h-4 w-24 mb-1" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    ))
+                  ) : (statsData?.popularPages || []).map((page, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
