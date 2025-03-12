@@ -219,50 +219,128 @@ router.get('/shared/:token', async (req, res) => {
   }
 });
 
-// Helper function to query the Together AI API
+// Helper function to query the Together AI API with chat completions
 async function queryTogetherAI(prompt: string, modelParams: any, page: any, references: any[] = []) {
   try {
-    // Generate reference information for the prompt
-    let referencesText = '';
-    if (references && references.length > 0) {
-      referencesText = '\nReferenced Information:\n';
-      
-      // Process page references
-      const pageRefs = references.filter(ref => ref.type === 'page');
-      if (pageRefs.length > 0) {
-        referencesText += '\nManuscript Pages:\n';
-        pageRefs.forEach((ref, index) => {
-          referencesText += `- Page ${ref.folioNumber || `#${ref.id}`}: Section ${ref.section || 'Unknown'}\n`;
-        });
+    // Process bracket references in the prompt - they will be in format {page123} or {symbol456}
+    const refRegex = /\{(page|symbol)(\d+)\}/g;
+    const matchesArray: Array<RegExpExecArray> = [];
+    let match: RegExpExecArray | null;
+    
+    // Extract all regex matches
+    while ((match = refRegex.exec(prompt)) !== null) {
+      matchesArray.push(match);
+    }
+    
+    const referencedIds = new Map<string, { type: string, id: number }>();
+    
+    // Extract all references from the prompt text
+    matchesArray.forEach(match => {
+      const type = match[1]; // 'page' or 'symbol'
+      const id = parseInt(match[2], 10);
+      if (!isNaN(id)) {
+        const key = `${type}-${id}`;
+        referencedIds.set(key, { type, id });
       }
+    });
+    
+    // Add any explicitly specified references from the references array
+    references.forEach(ref => {
+      const key = `${ref.type}-${ref.id}`;
+      if (!referencedIds.has(key)) {
+        referencedIds.set(key, { type: ref.type, id: ref.id });
+      }
+    });
+    
+    // Fetch detailed information for all referenced items
+    const detailedReferences: Array<any> = [];
+    
+    // Convert Map entries to array for easier iteration
+    const referencedIdsArray = Array.from(referencedIds.entries());
+    
+    // Process each reference
+    for (let i = 0; i < referencedIdsArray.length; i++) {
+      const [_, ref] = referencedIdsArray[i];
       
-      // Process symbol references
-      const symbolRefs = references.filter(ref => ref.type === 'symbol');
-      if (symbolRefs.length > 0) {
-        referencesText += '\nManuscript Symbols:\n';
-        symbolRefs.forEach((ref, index) => {
-          referencesText += `- Symbol ID #${ref.id}: ${ref.category || 'Uncategorized'} symbol`;
-          if (ref.pageId) {
-            referencesText += ` from page ID #${ref.pageId}`;
-          }
-          referencesText += '\n';
-        });
+      if (ref.type === 'page') {
+        const refPage = await storage.getManuscriptPage(ref.id);
+        if (refPage) {
+          detailedReferences.push({
+            type: 'page',
+            id: ref.id,
+            folioNumber: refPage.folioNumber,
+            section: refPage.section,
+            bracketRef: `{page${ref.id}}`
+          });
+        }
+      } else if (ref.type === 'symbol') {
+        const symbol = await storage.getSymbol(ref.id);
+        if (symbol) {
+          // Get the page to provide more context
+          const symbolPage = await storage.getManuscriptPage(symbol.pageId);
+          const folioNumber = symbolPage ? symbolPage.folioNumber : `unknown`;
+          
+          detailedReferences.push({
+            type: 'symbol',
+            id: ref.id,
+            pageId: symbol.pageId,
+            folioNumber: folioNumber,
+            category: symbol.category,
+            x: symbol.x,
+            y: symbol.y,
+            width: symbol.width,
+            height: symbol.height,
+            bracketRef: `{symbol${ref.id}}`
+          });
+        }
       }
     }
     
-    // Full prompt with context
-    const fullPrompt = `
+    // Generate reference information for the system prompt
+    let referencesText = '';
+    if (detailedReferences.length > 0) {
+      referencesText = '\nReferenced Items:\n';
+      
+      // Process page references
+      const pageRefs = detailedReferences.filter(ref => ref.type === 'page');
+      if (pageRefs.length > 0) {
+        referencesText += '\nManuscript Pages:\n';
+        for (let i = 0; i < pageRefs.length; i++) {
+          const ref = pageRefs[i];
+          referencesText += `- ${ref.bracketRef}: Folio ${ref.folioNumber}, Section: ${ref.section || 'Unknown'}\n`;
+        }
+      }
+      
+      // Process symbol references
+      const symbolRefs = detailedReferences.filter(ref => ref.type === 'symbol');
+      if (symbolRefs.length > 0) {
+        referencesText += '\nManuscript Symbols:\n';
+        for (let i = 0; i < symbolRefs.length; i++) {
+          const ref = symbolRefs[i];
+          referencesText += `- ${ref.bracketRef}: ${ref.category || 'Uncategorized'} symbol on Folio ${ref.folioNumber}, position: (${ref.x}, ${ref.y}), dimensions: ${ref.width}x${ref.height}\n`;
+        }
+      }
+    }
+    
+    // System context that explains the bracketed references
+    const systemPrompt = `
 You are an expert analyzing the Voynich Manuscript, a mysterious illustrated codex from the early 15th century written in an unknown writing system.
 
-Folio Information:
-- Page number: ${page.folioNumber}
+You will respond to user queries about the manuscript with scholarly analysis. The user may reference specific pages or symbols using bracketed notation like {page123} or {symbol456}.
+
+Current Folio Information:
+- Folio number: ${page.folioNumber}
 - Section: ${page.section || 'Unknown'}
 ${referencesText}
-User Query: ${prompt}
 
-Provide a detailed, scholarly analysis based on the available information about this manuscript. Be sure to clearly distinguish between established facts and speculative interpretations. When referring to specific pages or symbols that were referenced, refer to them by their identifiers.
+Guidelines:
+1. When the user references a page or symbol with bracket notation, refer to it by the same notation in your response.
+2. Provide academically rigorous analysis that separates established facts from speculative interpretations.
+3. Your analysis should be detailed, contextual, and reference relevant scholarly perspectives.
+4. Focus on the specific elements the user has asked about and their connections to the broader manuscript.
 `;
 
+    // Use the chat completion format for the Llama-Vision-Free model
     const response = await fetch(TOGETHER_API_URL, {
       method: 'POST',
       headers: {
@@ -271,19 +349,29 @@ Provide a detailed, scholarly analysis based on the available information about 
       },
       body: JSON.stringify({
         model: modelParams.model,
-        prompt: fullPrompt,
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
         temperature: modelParams.temperature || 0.7,
-        max_tokens: modelParams.maxTokens || 500,
-        stop: ["<|im_end|>", "<|endoftext|>"]
+        max_tokens: modelParams.maxTokens || 500
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("Together AI Error Response:", errorText);
       throw new Error(`Together AI API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
+    console.log("AI Response Data:", JSON.stringify(data).substring(0, 200) + "...");
     return data;
     
   } catch (error) {

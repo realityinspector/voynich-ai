@@ -11,3 +11,15 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Styling for bracketed references in AI analysis */
+  .reference-highlight {
+    @apply bg-primary/10 text-primary font-medium rounded px-1 py-0.5 border border-primary/20 cursor-pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .reference-highlight:hover {
+    @apply bg-primary/20 border-primary/30;
+  }
+}

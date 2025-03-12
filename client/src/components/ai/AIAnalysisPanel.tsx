@@ -244,15 +244,32 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
     
     try {
       const aiData = result.result;
-      if (aiData.choices && aiData.choices.length > 0) {
-        return aiData.choices[0].message.content;
+      
+      // For chat completions format (new format)
+      if (aiData.choices && aiData.choices.length > 0 && aiData.choices[0].message) {
+        // Replace bracketed references with highlighted spans
+        const content = aiData.choices[0].message.content;
+        return formatTextWithReferences(content);
       }
       
       // Fallback to raw JSON if we can't parse nicely
       return JSON.stringify(aiData, null, 2);
     } catch (error) {
+      console.error('Error parsing AI response:', error);
       return 'Error parsing AI response';
     }
+  };
+  
+  // Format text to highlight bracketed references
+  const formatTextWithReferences = (text: string) => {
+    if (!text) return '';
+    
+    // Replace {pageXXX} and {symbolXXX} with highlighted spans
+    const formattedText = text.replace(/\{(page|symbol)(\d+)\}/g, (match) => {
+      return `<span class="reference-highlight">${match}</span>`;
+    });
+    
+    return formattedText;
   };
   
   // Handle reference selection
@@ -546,9 +563,10 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
               <TabsContent value="results" className="mt-4">
                 <div className="bg-neutral-50 p-4 rounded-md border border-neutral-200">
                   <div className="prose max-w-none">
-                    <pre className="whitespace-pre-wrap font-mono text-sm">
-                      {formatAIResponse(analysisResult)}
-                    </pre>
+                    <div 
+                      className="whitespace-pre-wrap font-sans text-sm"
+                      dangerouslySetInnerHTML={{ __html: formatAIResponse(analysisResult) }}
+                    />
                   </div>
                 </div>
               </TabsContent>
