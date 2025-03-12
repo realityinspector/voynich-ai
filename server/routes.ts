@@ -582,7 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/extraction/jobs', isAuthenticated, async (req, res) => {
+  app.get('/api/extraction/jobs', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const userId = req.user!.id;
       const jobs = await storage.listExtractionJobsByUser(userId);
@@ -593,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/extraction/job/:id', isAuthenticated, async (req, res) => {
+  app.get('/api/extraction/job/:id', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const jobId = parseInt(req.params.id);
       const job = await storage.getExtractionJob(jobId);
