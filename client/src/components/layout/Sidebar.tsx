@@ -143,14 +143,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                     </div>
                   </Link>
                   <Link href="/symbols?tab=classification">
-                    <a className="block px-2 py-1 text-sm text-white hover:text-secondary">
+                    <div className="block px-2 py-1 text-sm text-white hover:text-secondary cursor-pointer">
                       Classification
-                    </a>
+                    </div>
                   </Link>
                   <Link href="/symbols?tab=statistics">
-                    <a className="block px-2 py-1 text-sm text-white hover:text-secondary">
+                    <div className="block px-2 py-1 text-sm text-white hover:text-secondary cursor-pointer">
                       Statistics
-                    </a>
+                    </div>
                   </Link>
                 </div>
               )}
@@ -158,20 +158,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
             
             <div className="space-y-1">
               <Link href="/annotations">
-                <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/annotations' 
                     ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <MessageSquare className="mr-3 h-5 w-5 text-secondary" />
                   Annotations
-                </a>
+                </div>
               </Link>
             </div>
             
             <div className="space-y-1">
               <Link href="/analysis">
-                <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/analysis' 
                     ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
@@ -181,33 +181,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                   <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-accent">
                     {credits} Credits
                   </span>
-                </a>
+                </div>
               </Link>
             </div>
             
             <div className="space-y-1">
               <Link href="/gallery">
-                <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/gallery' 
                     ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Images className="mr-3 h-5 w-5 text-secondary" />
                   Gallery
-                </a>
+                </div>
               </Link>
             </div>
             
             <div className="space-y-1">
               <Link href="/api-docs">
-                <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/api-docs' 
                     ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Code className="mr-3 h-5 w-5 text-secondary" />
                   API Documentation
-                </a>
+                </div>
               </Link>
             </div>
             
@@ -220,27 +220,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                 
                 <div className="space-y-1">
                   <Link href="/admin/upload">
-                    <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                    <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                       location === '/admin/upload' 
                         ? 'bg-opacity-75 bg-secondary text-white' 
                         : 'text-white hover:bg-primary-700'
                     }`}>
                       <Upload className="mr-3 h-5 w-5 text-secondary" />
                       Upload Pages
-                    </a>
+                    </div>
                   </Link>
                 </div>
                 
                 <div className="space-y-1">
                   <Link href="/admin/settings">
-                    <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                    <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                       location === '/admin/settings' 
                         ? 'bg-opacity-75 bg-secondary text-white' 
                         : 'text-white hover:bg-primary-700'
                     }`}>
                       <Settings className="mr-3 h-5 w-5 text-secondary" />
                       Settings
-                    </a>
+                    </div>
                   </Link>
                 </div>
               </div>
@@ -250,7 +250,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
             <div className="pt-4 mt-4 border-t border-primary-700">
               <div className="space-y-1">
                 <Link href="/credits">
-                  <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                  <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                     location === '/credits' 
                       ? 'bg-opacity-75 bg-secondary text-white' 
                       : 'text-white hover:bg-primary-700'
@@ -259,7 +259,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                       <span className="text-lg font-bold">+</span>
                     </div>
                     Purchase Credits
-                  </a>
+                  </div>
                 </Link>
               </div>
             </div>
