@@ -62,7 +62,7 @@ export default function Home() {
             <div className="relative rounded-lg overflow-hidden border shadow-xl">
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/20"></div>
               <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Voynich_Manuscript_%28170%29.jpg/1024px-Voynich_Manuscript_%28170%29.jpg" 
+                src="/samples/voynich_page.svg" 
                 alt="Voynich Manuscript" 
                 className="w-full object-cover"
               />
@@ -247,129 +247,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* User Roles Section */}
+      {/* Symbol Gallery Section */}
       <section className="px-6 py-20 bg-primary-50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold font-heading mb-4">User Roles & Access</h2>
+            <h2 className="text-3xl font-bold font-heading mb-4">Voynich Manuscript Symbols</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our platform offers different levels of access to accommodate various research needs.
+              Explore the fascinating and mysterious symbols found throughout the Voynich Manuscript.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Researcher Role */}
-            <Card>
-              <CardHeader className="text-center">
-                <div className="mx-auto bg-primary/10 p-4 rounded-full mb-4">
-                  <ScrollText className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle>Researcher</CardTitle>
-                <CardDescription>
-                  Basic access for new users
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Browse manuscript pages</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>View symbols and public annotations</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Read public research notes</span>
-                  </li>
-                </ul>
-
-                <div className="mt-8">
-                  <Link href="/register">
-                    <Button variant="outline" className="w-full">Get Started</Button>
-                  </Link>
-                </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Symbol 1 */}
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
+                <img src="/samples/symbol1.svg" alt="Voynich Symbol 1" className="h-32 w-32" />
+              </div>
+              <CardContent className="pt-4">
+                <h3 className="font-medium text-center">Botanical Symbol</h3>
+                <p className="text-sm text-muted-foreground text-center">Commonly found in herbal sections</p>
               </CardContent>
             </Card>
 
-            {/* Contributor Role */}
-            <Card className="border-primary">
-              <CardHeader className="text-center">
-                <div className="mx-auto bg-primary/10 p-4 rounded-full mb-4">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle>Contributor</CardTitle>
-                <CardDescription>
-                  Enhanced access for active participants
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>All Researcher features</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Create annotations and research notes</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Use AI analysis tools</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Vote on community annotations</span>
-                  </li>
-                </ul>
-
-                <div className="mt-8">
-                  <Link href="/register">
-                    <Button className="w-full">Join as Contributor</Button>
-                  </Link>
-                </div>
+            {/* Symbol 2 */}
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
+                <img src="/samples/symbol2.svg" alt="Voynich Symbol 2" className="h-32 w-32" />
+              </div>
+              <CardContent className="pt-4">
+                <h3 className="font-medium text-center">Astronomical Symbol</h3>
+                <p className="text-sm text-muted-foreground text-center">Present in astronomical charts</p>
               </CardContent>
             </Card>
 
-            {/* Administrator Role */}
-            <Card>
-              <CardHeader className="text-center">
-                <div className="mx-auto bg-primary/10 p-4 rounded-full mb-4">
-                  <Key className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle>Administrator</CardTitle>
-                <CardDescription>
-                  Full access for platform managers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>All Contributor features</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Upload manuscript pages</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Extract symbols from pages</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2" />
-                    <span>Manage platform settings</span>
-                  </li>
-                </ul>
-
-                <div className="mt-8">
-                  <Button variant="outline" className="w-full" disabled>
-                    Admin Access
-                  </Button>
-                </div>
+            {/* Symbol 3 */}
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
+                <img src="/samples/symbol3.svg" alt="Voynich Symbol 3" className="h-32 w-32" />
+              </div>
+              <CardContent className="pt-4">
+                <h3 className="font-medium text-center">Cosmological Symbol</h3>
+                <p className="text-sm text-muted-foreground text-center">Found in cosmological diagrams</p>
               </CardContent>
             </Card>
+
+            {/* Symbol 4 */}
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
+                <img src="/samples/symbol4.svg" alt="Voynich Symbol 4" className="h-32 w-32" />
+              </div>
+              <CardContent className="pt-4">
+                <h3 className="font-medium text-center">Pharmaceutical Symbol</h3>
+                <p className="text-sm text-muted-foreground text-center">Related to pharmaceutical recipes</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <Link href="/symbols">
+              <Button size="lg">
+                Explore Full Symbol Gallery
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

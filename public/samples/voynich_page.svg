@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="600" height="800" viewBox="0 0 600 800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="800" fill="#f8f3e6"/>
+  
+  <!-- Aged paper texture -->
+  <filter id="paper-texture" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" seed="5" />
+    <feColorMatrix type="matrix" values="0 0 0 0 0, 0 0 0 0 0, 0 0 0 0 0, 0 0 0 0.1 0"/>
+    <feComposite operator="in" in2="SourceGraphic" />
+  </filter>
+  
+  <rect width="600" height="800" fill="#e8d8c0" filter="url(#paper-texture)" opacity="0.2"/>
+  
+  <!-- Page border stains -->
+  <g opacity="0.1">
+    <path d="M0,0 Q150,50 100,200 Q50,350 120,550 Q150,700 50,800 L0,800 Z" fill="#8a6642"/>
+    <path d="M600,0 Q450,30 500,200 Q550,400 480,600 Q450,700 500,800 L600,800 Z" fill="#8a6642"/>
+  </g>
+  
+  <!-- Manuscript text - stylized as Voynich script -->
+  <g stroke="#3a3124" stroke-width="1" fill="none">
+    <!-- First paragraph -->
+    <path d="M100,100 Q110,90 120,100 Q130,110 140,100 M145,100 Q155,90 165,100 Q175,110 185,100 M190,100 Q200,90 210,100 Q220,110 230,100" />
+    <path d="M100,120 Q120,110 140,120 Q160,130 180,120 M190,120 Q210,110 230,120 Q250,130 270,120 M280,120 Q300,110 320,120" />
+    <path d="M100,140 Q110,130 120,140 Q130,150 140,140 M145,140 Q155,130 165,140 Q175,150 185,140 M190,140 Q200,130 210,140" />
+    <path d="M100,160 Q110,150 120,160 Q130,170 140,160 M145,160 Q155,150 165,160 Q175,170 185,160 M190,160 Q200,150 210,160 Q220,170 230,160" />
+    
+    <!-- Second paragraph -->
+    <path d="M100,200 Q110,190 120,200 Q130,210 140,200 M145,200 Q155,190 165,200 Q175,210 185,200 M190,200 Q200,190 210,200 Q220,210 230,200" />
+    <path d="M100,220 Q120,210 140,220 Q160,230 180,220 M190,220 Q210,210 230,220 Q250,230 270,220 M280,220 Q300,210 320,220" />
+    <path d="M100,240 Q110,230 120,240 Q130,250 140,240 M145,240 Q155,230 165,240 Q175,250 185,240 M190,240 Q200,230 210,240" />
+    <path d="M100,260 Q110,250 120,260 Q130,270 140,260 M145,260 Q155,250 165,260 Q175,270 185,260 M190,260 Q200,250 210,260 Q220,270 230,260" />
+    
+    <!-- Botanical illustration -->
+    <g transform="translate(150, 350)">
+      <!-- Plant stem -->
+      <path d="M150,250 C120,200 170,150 150,100 C130,50 180,20 150,0" stroke="#3a3124" stroke-width="2" fill="none"/>
+      
+      <!-- Leaves -->
+      <path d="M150,100 C180,90 200,110 190,130 C170,140 160,130 150,100" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      <path d="M150,100 C120,90 100,110 110,130 C130,140 140,130 150,100" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      <path d="M150,150 C180,140 210,160 200,180 C180,190 160,170 150,150" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      <path d="M150,150 C120,140 90,160 100,180 C120,190 140,170 150,150" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      <path d="M150,50 C170,40 200,50 190,70 C170,80 160,70 150,50" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      <path d="M150,50 C130,40 100,50 110,70 C130,80 140,70 150,50" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      
+      <!-- Flower/bulb at top -->
+      <path d="M150,0 C170,-10 180,10 170,20 C160,25 140,25 130,20 C120,10 130,-10 150,0" stroke="#3a3124" stroke-width="1.5" fill="none"/>
+      
+      <!-- Detail lines in leaves and flower -->
+      <path d="M150,100 C160,105 170,115 190,130" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,100 C140,105 130,115 110,130" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,150 C160,155 170,165 200,180" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,150 C140,155 130,165 100,180" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,50 C160,55 170,60 190,70" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,50 C140,55 130,60 110,70" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,0 C155,5 160,10 170,20" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+      <path d="M150,0 C145,5 140,10 130,20" stroke="#3a3124" stroke-width="0.75" fill="none"/>
+    </g>
+    
+    <!-- More text under the illustration -->
+    <path d="M100,650 Q110,640 120,650 Q130,660 140,650 M145,650 Q155,640 165,650 Q175,660 185,650 M190,650 Q200,640 210,650 Q220,660 230,650" />
+    <path d="M100,670 Q120,660 140,670 Q160,680 180,670 M190,670 Q210,660 230,670 Q250,680 270,670 M280,670 Q300,660 320,670" />
+    <path d="M100,690 Q110,680 120,690 Q130,700 140,690 M145,690 Q155,680 165,690 Q175,700 185,690 M190,690 Q200,680 210,690" />
+    <path d="M100,710 Q110,700 120,710 Q130,720 140,710 M145,710 Q155,700 165,710 Q175,720 185,710 M190,710 Q200,700 210,710 Q220,720 230,710" />
+    
+    <!-- Page number at bottom -->
+    <text x="300" y="760" font-family="serif" font-size="18" text-anchor="middle" fill="#3a3124">f.16v</text>
+  </g>
+</svg>
