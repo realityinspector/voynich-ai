@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, Search, Book, Image } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Braces, X, BookOpen, Hash } from 'lucide-react';
 
 export type ReferenceType = 'page' | 'symbol';
 
@@ -23,68 +22,60 @@ interface ReferenceSelectorProps {
 
 export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeType, setActiveType] = useState<ReferenceType>('page');
+  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<ReferenceType>('page');
 
-  // Get pages for reference
+  // Fetch manuscript pages
   const { data: pagesData } = useQuery({
-    queryKey: ['/api/pages'],
-    retry: false
+    queryKey: ['/api/manuscript/pages'],
+    retry: false,
   });
-
-  // Get symbols for reference
+  
+  // Fetch all symbols (expensive operation, but useful for reference)
   const { data: symbolsData } = useQuery({
     queryKey: ['/api/symbols/all'],
-    retry: false
+    retry: false,
   });
-
+  
   const pages = pagesData?.pages || [];
   const symbols = symbolsData?.symbols || [];
+  
+  // Filter pages based on search
+  const filteredPages = pages.filter((page: any) => {
+    const folioNumber = page.folioNumber || '';
+    return folioNumber.toLowerCase().includes(search.toLowerCase());
+  });
+  
+  // Filter symbols based on search
+  const filteredSymbols = symbols.filter((symbol: any) => {
+    const label = `symbol${symbol.id}`;
+    const category = symbol.category || '';
+    return label.toLowerCase().includes(search.toLowerCase()) || 
+           category.toLowerCase().includes(search.toLowerCase());
+  }).slice(0, 50); // Limit to 50 symbols for performance
 
-  const filterItems = () => {
-    if (activeType === 'page') {
-      return pages
-        .filter(page => 
-          page.folioNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          page.id.toString().includes(searchQuery)
-        )
-        .map(page => ({
-          id: page.id,
-          type: 'page' as ReferenceType,
-          label: `Page ${page.folioNumber}`,
-          value: page.id.toString(),
-          section: page.section
-        }));
-    } else {
-      return symbols
-        .filter(symbol => 
-          symbol.id.toString().includes(searchQuery) ||
-          (symbol.category && symbol.category.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-        .map(symbol => ({
-          id: symbol.id,
-          type: 'symbol' as ReferenceType,
-          label: `Symbol ${symbol.id}${symbol.category ? ` (${symbol.category})` : ''}`,
-          value: symbol.id.toString(),
-          pageId: symbol.pageId
-        }));
+  const handleSelect = (item: any, type: ReferenceType) => {
+    let label = '';
+    
+    if (type === 'page') {
+      label = item.folioNumber;
+    } else if (type === 'symbol') {
+      label = `symbol${item.id}`;
     }
-  };
-
-  const filteredItems = filterItems();
-
-  const handleSelect = (item: any) => {
+    
     onSelect({
       id: item.id,
-      type: item.type,
-      label: item.label
+      type,
+      label
     });
-    setOpen(false);
     
-    // If the input is part of an editing context, the onBlur helps to restore focus
-    if (onBlur) {
-      onBlur();
-    }
+    setOpen(false);
+    setSearch('');
+  };
+  
+  // Determine which symbol to show based on page
+  const getSymbolsByPage = (pageId: number) => {
+    return symbols.filter((s: any) => s.pageId === pageId);
   };
 
   return (
@@ -93,73 +84,70 @@ export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelec
         <Button 
           variant="outline" 
           size="sm" 
-          className="h-8 gap-1 text-muted-foreground hover:text-foreground"
-          onClick={() => setOpen(true)}
+          className="text-sm flex items-center gap-1"
         >
-          <Search className="h-3.5 w-3.5" />
-          <span>Add reference</span>
+          <BracesIcon className="h-4 w-4 mr-1" />
+          Add Reference
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-80" align="start">
+      <PopoverContent className="p-0" align="start" sideOffset={5} style={{ width: '350px' }}>
         <Command>
-          <CommandInput 
-            placeholder="Search pages or symbols..." 
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
-          <div className="flex border-b p-1 px-2">
+          <div className="flex border-b">
             <Button
-              variant={activeType === 'page' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="text-xs h-7 flex gap-1"
-              onClick={() => setActiveType('page')}
+              variant={activeTab === 'page' ? 'subtle' : 'ghost'}
+              className={`flex-1 rounded-none ${activeTab === 'page' ? 'border-b-2 border-primary' : ''}`}
+              onClick={() => setActiveTab('page')}
             >
-              <Book className="h-3.5 w-3.5" />
+              <BookIcon className="h-4 w-4 mr-1" />
               Pages
             </Button>
             <Button
-              variant={activeType === 'symbol' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="text-xs h-7 flex gap-1"
-              onClick={() => setActiveType('symbol')}
+              variant={activeTab === 'symbol' ? 'subtle' : 'ghost'}
+              className={`flex-1 rounded-none ${activeTab === 'symbol' ? 'border-b-2 border-primary' : ''}`}
+              onClick={() => setActiveTab('symbol')}
             >
-              <Image className="h-3.5 w-3.5" />
+              <Hash className="h-4 w-4 mr-1" />
               Symbols
             </Button>
           </div>
+          <CommandInput 
+            placeholder={activeTab === 'page' ? "Search pages..." : "Search symbols..."}
+            value={search}
+            onValueChange={setSearch}
+          />
           <CommandList>
-            <CommandEmpty>No matches found</CommandEmpty>
+            <CommandEmpty>No {activeTab === 'page' ? 'pages' : 'symbols'} found.</CommandEmpty>
             <CommandGroup>
-              {filteredItems.slice(0, 50).map((item) => (
-                <CommandItem
-                  key={`${item.type}-${item.id}`}
-                  value={`${item.type}-${item.id}`}
-                  onSelect={() => handleSelect(item)}
-                >
-                  <div className="flex items-center">
-                    {item.type === 'page' ? (
-                      <Book className="h-4 w-4 mr-2 text-muted-foreground" />
-                    ) : (
-                      <Image className="h-4 w-4 mr-2 text-muted-foreground" />
-                    )}
-                    <span>{item.label}</span>
-                    {item.type === 'page' && item.section && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {item.section}
+              {activeTab === 'page' ? (
+                filteredPages.map((p: any) => (
+                  <CommandItem
+                    key={p.id}
+                    value={p.folioNumber}
+                    onSelect={() => handleSelect(p, 'page')}
+                  >
+                    <BookIcon className="h-4 w-4 mr-2" />
+                    <span className="flex-1">{p.folioNumber}</span>
+                    <Badge variant="outline" className="ml-2">
+                      {getSymbolsByPage(p.id).length} symbols
+                    </Badge>
+                  </CommandItem>
+                ))
+              ) : (
+                filteredSymbols.map((symbol: any) => (
+                  <CommandItem
+                    key={symbol.id}
+                    value={`symbol${symbol.id}`}
+                    onSelect={() => handleSelect(symbol, 'symbol')}
+                  >
+                    <Hash className="h-4 w-4 mr-2" />
+                    <span>symbol{symbol.id}</span>
+                    {symbol.category && (
+                      <Badge variant="outline" className="ml-2">
+                        {symbol.category}
                       </Badge>
                     )}
-                    {item.type === 'symbol' && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        Page {pages.find(p => p.id === item.pageId)?.folioNumber || item.pageId}
-                      </Badge>
-                    )}
-                  </div>
-                </CommandItem>
-              ))}
-              {filteredItems.length > 50 && (
-                <div className="py-2 px-2 text-xs text-muted-foreground">
-                  Showing 50 of {filteredItems.length} results. Refine your search.
-                </div>
+                  </CommandItem>
+                ))
               )}
             </CommandGroup>
           </CommandList>
@@ -175,26 +163,24 @@ export interface ReferenceDisplayProps {
 }
 
 export function ReferenceDisplay({ references, onRemove }: ReferenceDisplayProps) {
-  if (references.length === 0) return null;
-  
   return (
-    <div className="flex flex-wrap gap-1.5 mt-2">
+    <div className="flex flex-wrap gap-2">
       {references.map((ref) => (
         <Badge 
           key={`${ref.type}-${ref.id}`} 
           variant="secondary"
-          className="flex items-center gap-1 pr-1"
+          className="flex items-center gap-1 px-2 py-1"
         >
           {ref.type === 'page' ? (
-            <Book className="h-3 w-3 text-muted-foreground" />
+            <BookIcon className="h-3 w-3" />
           ) : (
-            <Image className="h-3 w-3 text-muted-foreground" />
+            <Hash className="h-3 w-3" />
           )}
           <span>{ref.label}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 hover:bg-transparent"
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-4 w-4 p-0 ml-1"
             onClick={() => onRemove(ref)}
           >
             <X className="h-3 w-3" />
@@ -205,40 +191,41 @@ export function ReferenceDisplay({ references, onRemove }: ReferenceDisplayProps
   );
 }
 
+// Function to find reference patterns in text (like {page123} or {symbol456})
 export function findReferencePattern(text: string): { references: string[], newText: string } {
-  // Match pattern like {page123} or {symbol456}
-  const pattern = /{(page|symbol)(\d+)}/g;
+  const refRegex = /\{(page|symbol)(\d+)\}/g;
   const references: string[] = [];
+  const matches = text.match(refRegex) || [];
   
-  // Find all matches
-  let match;
-  while ((match = pattern.exec(text)) !== null) {
-    references.push(match[0]);
-  }
+  // Extract all references
+  matches.forEach((match) => {
+    references.push(match);
+  });
   
-  return {
-    references,
-    newText: text
-  };
+  // Remove references from text (if needed)
+  const newText = text.replace(refRegex, '');
+  
+  return { references, newText };
 }
 
+// Function to insert reference at cursor position
 export function insertReferenceAtCursor(
   text: string,
   reference: Reference,
   cursorPosition: number
 ): string {
-  const referenceText = `{${reference.type}${reference.id}}`;
-  return text.substring(0, cursorPosition) + referenceText + text.substring(cursorPosition);
+  const refText = `{${reference.type}${reference.id}}`;
+  
+  // Insert at cursor position
+  const before = text.slice(0, cursorPosition);
+  const after = text.slice(cursorPosition);
+  
+  return before + refText + after;
 }
 
+// Format text by highlighting references
 export function formatTextWithReferences(text: string): string {
-  // Replace {page123} with "Page 123"
-  const pagePattern = /{page(\d+)}/g;
-  text = text.replace(pagePattern, (match, pageId) => `Page ${pageId}`);
-  
-  // Replace {symbol456} with "Symbol 456"
-  const symbolPattern = /{symbol(\d+)}/g;
-  text = text.replace(symbolPattern, (match, symbolId) => `Symbol ${symbolId}`);
-  
-  return text;
+  // You could implement a more sophisticated highlighting here if needed
+  return text.replace(/\{(page|symbol)(\d+)\}/g, 
+    '<span class="reference-highlight">$&</span>');
 }

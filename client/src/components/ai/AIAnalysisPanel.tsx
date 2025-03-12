@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { 
   Card, 
@@ -39,8 +39,16 @@ import {
 } from '@/components/ui/alert-dialog';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Share2, Info, AlertTriangle, Sparkles, RefreshCw } from 'lucide-react';
+import { Share2, Info, AlertTriangle, Sparkles, RefreshCw, BracesIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+
+import { 
+  ReferenceSelector, 
+  ReferenceDisplay, 
+  Reference, 
+  insertReferenceAtCursor, 
+  findReferencePattern 
+} from './ReferenceSelector';
 
 interface AIAnalysisPanelProps {
   pageId: number;
@@ -61,6 +69,9 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
   const [isPublic, setIsPublic] = useState<boolean>(false);
   const [showCreditAlert, setShowCreditAlert] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [references, setReferences] = useState<Reference[]>([]);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   
   // Get available models
@@ -195,6 +206,13 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
       return;
     }
     
+    // Process the references first
+    const processedReferences = references.map(ref => ({
+      id: ref.id,
+      type: ref.type,
+      label: ref.label
+    }));
+    
     analysisMutation.mutate({
       pageId,
       prompt,
@@ -203,6 +221,7 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
         temperature,
         maxTokens
       },
+      references: processedReferences,
       isPublic
     });
   };
@@ -234,6 +253,48 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
     }
   };
   
+  // Handle reference selection
+  const handleAddReference = (reference: Reference) => {
+    if (promptTextareaRef.current) {
+      // Add the reference at cursor position or at the end if no cursor position
+      const newPrompt = insertReferenceAtCursor(
+        prompt, 
+        reference, 
+        cursorPosition || prompt.length
+      );
+      setPrompt(newPrompt);
+      
+      // Add to references list for tracking
+      const alreadyExists = references.some(
+        ref => ref.id === reference.id && ref.type === reference.type
+      );
+      
+      if (!alreadyExists) {
+        setReferences([...references, reference]);
+      }
+    }
+  };
+  
+  // Handle reference removal
+  const handleRemoveReference = (reference: Reference) => {
+    setReferences(references.filter(
+      ref => !(ref.id === reference.id && ref.type === reference.type)
+    ));
+  };
+  
+  // Track cursor position in the textarea
+  const handleTextareaSelect = (e: React.MouseEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const target = e.target as HTMLTextAreaElement;
+    setCursorPosition(target.selectionStart || 0);
+  };
+  
+  // Extract references from prompt text
+  useEffect(() => {
+    const { references: foundRefs } = findReferencePattern(prompt);
+    // Could be used to validate or highlight references
+    // For now we're using the manually tracked references state
+  }, [prompt]);
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -252,14 +313,34 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
             <div className="space-y-4">
               <div>
                 <Label htmlFor="prompt">Your Analysis Prompt</Label>
-                <Textarea
-                  id="prompt"
-                  placeholder="Ask a question about this page of the Voynich Manuscript..."
-                  className="h-32"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  disabled={analysisMutation.isPending}
-                />
+                <div className="relative">
+                  <Textarea
+                    id="prompt"
+                    ref={promptTextareaRef}
+                    placeholder="Ask a question about this page of the Voynich Manuscript... Use {} to reference pages or symbols"
+                    className="h-32"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyUp={handleTextareaSelect}
+                    onClick={handleTextareaSelect}
+                    disabled={analysisMutation.isPending}
+                  />
+                  <div className="relative mt-2">
+                    <ReferenceSelector 
+                      onSelect={handleAddReference}
+                      inputRef={promptTextareaRef}
+                    />
+                  </div>
+                  {references.length > 0 && (
+                    <div className="mt-3">
+                      <Label className="text-xs text-neutral-500 mb-1 block">Referenced Items:</Label>
+                      <ReferenceDisplay 
+                        references={references} 
+                        onRemove={handleRemoveReference} 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
