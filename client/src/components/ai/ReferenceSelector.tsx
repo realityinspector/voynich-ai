@@ -17,7 +17,7 @@ export interface Reference {
 interface ReferenceSelectorProps {
   onSelect: (reference: Reference) => void;
   onBlur?: () => void;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLTextAreaElement | HTMLInputElement>;
 }
 
 export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelectorProps) {
@@ -86,7 +86,7 @@ export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelec
           size="sm" 
           className="text-sm flex items-center gap-1"
         >
-          <BracesIcon className="h-4 w-4 mr-1" />
+          <Braces className="h-4 w-4 mr-1" />
           Add Reference
         </Button>
       </PopoverTrigger>
@@ -94,15 +94,15 @@ export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelec
         <Command>
           <div className="flex border-b">
             <Button
-              variant={activeTab === 'page' ? 'subtle' : 'ghost'}
+              variant={activeTab === 'page' ? 'default' : 'ghost'}
               className={`flex-1 rounded-none ${activeTab === 'page' ? 'border-b-2 border-primary' : ''}`}
               onClick={() => setActiveTab('page')}
             >
-              <BookIcon className="h-4 w-4 mr-1" />
+              <BookOpen className="h-4 w-4 mr-1" />
               Pages
             </Button>
             <Button
-              variant={activeTab === 'symbol' ? 'subtle' : 'ghost'}
+              variant={activeTab === 'symbol' ? 'default' : 'ghost'}
               className={`flex-1 rounded-none ${activeTab === 'symbol' ? 'border-b-2 border-primary' : ''}`}
               onClick={() => setActiveTab('symbol')}
             >
@@ -125,7 +125,7 @@ export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelec
                     value={p.folioNumber}
                     onSelect={() => handleSelect(p, 'page')}
                   >
-                    <BookIcon className="h-4 w-4 mr-2" />
+                    <BookOpen className="h-4 w-4 mr-2" />
                     <span className="flex-1">{p.folioNumber}</span>
                     <Badge variant="outline" className="ml-2">
                       {getSymbolsByPage(p.id).length} symbols
@@ -172,7 +172,7 @@ export function ReferenceDisplay({ references, onRemove }: ReferenceDisplayProps
           className="flex items-center gap-1 px-2 py-1"
         >
           {ref.type === 'page' ? (
-            <BookIcon className="h-3 w-3" />
+            <BookOpen className="h-3 w-3" />
           ) : (
             <Hash className="h-3 w-3" />
           )}
