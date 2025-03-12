@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useManuscript } from '@/hooks/useManuscript';
 import { useSymbols } from '@/hooks/useSymbols';
 import SymbolExtraction from '@/components/manuscript/SymbolExtraction';
+import SymbolPositionViewer from '@/components/symbols/SymbolPositionViewer';
 import { 
   Puzzle, 
   Search, 
@@ -519,6 +520,47 @@ export default function Symbols() {
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+          
+          {/* Symbol Position Viewer */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Symbol Positioning</CardTitle>
+              <CardDescription>
+                Visualize the position of extracted symbols on the manuscript page
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!selectedPageId ? (
+                <div className="text-center py-8">
+                  <p className="text-neutral-500">Select a page to view symbol positions</p>
+                </div>
+              ) : symbolsLoading ? (
+                <div className="text-center py-8">
+                  <Puzzle className="h-8 w-8 mx-auto text-neutral-300 animate-pulse" />
+                  <p className="mt-2 text-neutral-500">Loading symbols...</p>
+                </div>
+              ) : symbols.length === 0 ? (
+                <div className="text-center py-8">
+                  <Puzzle className="h-8 w-8 mx-auto text-neutral-300" />
+                  <p className="mt-2 text-neutral-500">No symbols extracted yet</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setExtractionModalOpen(true)}
+                    className="mt-2"
+                  >
+                    Extract Symbols
+                  </Button>
+                </div>
+              ) : (
+                <SymbolPositionViewer
+                  pageId={selectedPageId}
+                  folioNumber={page?.folioNumber || ""}
+                  symbols={symbols}
+                  imageUrl={page?.imageUrl || ""}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
