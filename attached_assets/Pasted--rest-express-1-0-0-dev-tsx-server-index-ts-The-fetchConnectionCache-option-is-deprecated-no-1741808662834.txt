@@ -1,0 +1,108 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+The `fetchConnectionCache` option is deprecated (now always `true`)
+7:27:27 PM [express] serving on port 5000
+7:27:33 PM [express] GET /api/auth/session 401 in 2ms :: {"message":"Not authenticated"}
+7:27:34 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+7:28:05 PM [express] GET /api/auth/session 401 in 2ms :: {"message":"Not authenticated"}
+7:37:24 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+7:37:24 PM [express] GET /api/auth/session 401 in 1ms :: {"message":"Not authenticated"}
+7:37:29 PM [express] POST /api/auth/login 200 in 1160ms :: {"user":{"id":3,"username":"testuser","em…
+7:37:29 PM [express] GET /api/auth/session 200 in 65ms :: {"user":{"id":3,"username":"testuser","ema…
+7:37:29 PM [express] GET /api/auth/session 304 in 62ms :: {"user":{"id":3,"username":"testuser","ema…
+Error fetching recent activity: NeonDbError: relation "activity_feed" does not exist
+    at execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:68:18)
+    at async DatabaseStorage.getUserActivityFeed (/home/runner/workspace/server/storage.ts:746:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:136:28) {
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '104',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable',
+  sourceError: undefined
+}
+7:37:29 PM [express] GET /api/activity/recent 500 in 255ms :: {"message":"Failed to fetch recent act…
+Storage: Retrieved 5 manuscript pages from database
+Returning 5 manuscript pages
+7:37:29 PM [express] GET /api/pages 304 in 162ms :: {"pages":[{"id":100,"folioNumber":"100r","filena…
+7:37:29 PM [express] GET /api/ai/credits 200 in 252ms :: {"credits":50}
+7:37:29 PM [express] GET /api/ai/results 304 in 158ms :: {"results":[]}
+Storage: Retrieved 209 manuscript pages from database
+7:37:56 PM [express] GET /api/stats/dashboard 200 in 26552ms :: {"stats":{"totalPages":209,"totalSym…
+7:45:02 PM [express] GET /api/auth/session 304 in 1140ms :: {"user":{"id":3,"username":"testuser","e…
+Storage: Retrieved 209 manuscript pages from database
+Returning 209 manuscript pages
+7:45:02 PM [express] GET /api/pages 304 in 1314ms :: {"pages":[{"id":100,"folioNumber":"100r","filen…
+Storage: Retrieved 209 manuscript pages from database
+Returning 209 manuscript pages
+7:45:02 PM [express] GET /api/pages 304 in 1409ms :: {"pages":[{"id":100,"folioNumber":"100r","filen…
+7:45:02 PM [express] GET /api/pages/1 304 in 131ms :: {"page":{"id":1,"folioNumber":"1r","filename":…
+7:45:03 PM [express] GET /api/annotations/page/1 304 in 127ms :: {"annotations":[]}
+7:45:03 PM [express] GET /api/symbols/page/1 304 in 341ms :: {"symbols":[{"id":158,"pageId":1,"image…
+7:45:05 PM [express] GET /api/pages/204 200 in 118ms :: {"page":{"id":204,"folioNumber":"204r","file…
+7:45:05 PM [express] GET /api/symbols/page/204 200 in 238ms :: {"symbols":[{"id":19384,"pageId":204,…
+7:45:05 PM [express] GET /api/annotations/page/204 200 in 243ms :: {"annotations":[]}
+7:45:09 PM [express] GET /api/auth/session 304 in 174ms :: {"user":{"id":3,"username":"testuser","em…
+Error fetching symbols: NeonDbError: invalid input syntax for type integer: "NaN"
+    at execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:68:18)
+    at async DatabaseStorage.getSymbolsByPage (/home/runner/workspace/server/storage.ts:224:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:250:23) {
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '617',
+  routine: 'pg_strtoint32_safe',
+  sourceError: undefined
+}
+7:45:09 PM [express] GET /api/symbols/page/all 500 in 235ms :: {"message":"Failed to fetch symbols"}
+7:45:09 PM [express] GET /api/ai/results 304 in 242ms :: {"results":[]}
+7:45:09 PM [express] GET /api/ai/models 304 in 175ms :: {"models":[{"id":"mixtral-8x7b-instruct","na…
+7:45:10 PM [express] GET /api/pages/100 304 in 235ms :: {"page":{"id":100,"folioNumber":"100r","file…
+Storage: Retrieved 209 manuscript pages from database
+Returning 209 manuscript pages
+7:45:10 PM [express] GET /api/pages 304 in 293ms :: {"pages":[{"id":100,"folioNumber":"100r","filena…
+Together AI query error: Error: Together AI API error: 404 {
+  "id": "nkkfyjy-4yUbBN-91f5ca92bff0d451",
+  "error": {
+    "message": "Unable to access model mixtral-8x7b-instruct. Please visit https://api.together.ai/models to view the list of supported models.",
+    "type": "invalid_request_error",
+    "param": null,
+    "code": "model_not_available"
+  }
+}
+    at queryTogetherAI (/home/runner/workspace/server/api/ai.ts:285:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/api/ai.ts:120:22)
+AI analysis error: Error: Failed to query AI model
+    at queryTogetherAI (/home/runner/workspace/server/api/ai.ts:293:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/api/ai.ts:120:22)
+7:45:20 PM [express] POST /api/ai/analyze 500 in 788ms :: {"message":"Failed to perform AI analysis"}

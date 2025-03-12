@@ -18,9 +18,11 @@ const ANALYSIS_CREDIT_COST = 1;
 
 // Available models
 const AVAILABLE_MODELS = [
-  { id: 'mixtral-8x7b-instruct', name: 'Mixtral 8x7B', creditCost: 1 },
-  { id: 'llama-2-70b-chat', name: 'Llama 2 70B', creditCost: 1 },
-  { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', creditCost: 2 },
+  { id: 'meta-llama/Llama-3-8b-instruct', name: 'Llama 3 8B Instruct', creditCost: 1 },
+  { id: 'meta-llama/Llama-3-70b-instruct', name: 'Llama 3 70B Instruct', creditCost: 2 },
+  { id: 'meta-llama/Llama-3-8b-herd', name: 'Llama 3 8B Herd', creditCost: 1 },
+  { id: 'meta-llama/Llama-3-70b-herd', name: 'Llama 3 70B Herd', creditCost: 2 },
+  { id: 'meta-llama/Llama-Vision-Free', name: 'Llama Vision Free', creditCost: 3 },
 ];
 
 // Get available models
