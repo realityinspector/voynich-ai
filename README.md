@@ -55,11 +55,14 @@ The Voynich Manuscript Research Platform is an advanced AI-powered tool designed
 5. Use AI tools to analyze patterns and propose interpretations
 
 ## Administrator Setup
-To grant administrator privileges to a user (e.g., "realityinspector"):
+To grant administrator privileges to a user:
 
 ```bash
-# Run the admin setup script
-node scripts/set-admin.js realityinspector
+# Run the admin setup script with a username
+node scripts/set-admin.js [username]
+
+# Or simply run without arguments to set "realityinspector" as admin
+node scripts/set-admin.js
 ```
 
 This script will update the user's role to "admin" in the database, allowing them to:
