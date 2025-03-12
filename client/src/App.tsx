@@ -43,7 +43,8 @@ function Router() {
         if (
           location !== '/' && 
           location !== '/login' && 
-          location !== '/register'
+          location !== '/register' &&
+          location !== '/api-docs'
         ) {
           toast({
             title: "Authentication required",
