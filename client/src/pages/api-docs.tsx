@@ -44,10 +44,11 @@ export default function ApiDocs() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   
-  // Fetch API keys
+  // Fetch API keys only if user is authenticated
   const { data: keysData, isLoading: keysLoading, refetch: refetchKeys } = useQuery({
     queryKey: ['/api/api-keys'],
     retry: false,
+    enabled: !!user, // Only run query if user is authenticated
   });
   
   const apiKeys = keysData?.keys || [];
@@ -1108,137 +1109,169 @@ fetch('https://api.example.com/api/ai/analyze', {
             <CardHeader>
               <CardTitle>API Keys</CardTitle>
               <CardDescription>
-                Create and manage your API keys for programmatic access
+                Access the Voynich Manuscript API using API keys
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {/* API key creation form */}
-                <div className="bg-neutral-50 p-4 rounded-md border border-neutral-200">
-                  <h3 className="text-lg font-semibold mb-3">Create New API Key</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="key-name">Key Name</Label>
-                      <Input 
-                        id="key-name" 
-                        placeholder="My API Key" 
-                        className="mt-1"
-                        value={apiKeyName}
-                        onChange={(e) => setApiKeyName(e.target.value)}
-                      />
-                      <p className="text-xs text-neutral-500 mt-1">
-                        Give your key a descriptive name to remember its purpose
-                      </p>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button 
-                        onClick={handleCreateApiKey}
-                        disabled={createKeyMutation.isPending || !apiKeyName.trim()}
-                      >
-                        {createKeyMutation.isPending ? (
-                          <>
-                            <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-                            Creating...
-                          </>
-                        ) : (
-                          <>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Create API Key
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Newly created API key */}
-                {newApiKey && (
-                  <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-                    <h3 className="text-lg font-semibold mb-3 flex items-center text-yellow-700">
-                      <Key className="mr-2 h-5 w-5" />
-                      Your New API Key
-                    </h3>
-                    <p className="text-sm text-yellow-700 mb-2">
-                      Copy this key now. You won't be able to see it again!
-                    </p>
-                    <div className="flex items-center">
-                      <Input 
-                        value={newApiKey} 
-                        readOnly 
-                        type={showApiKey ? "text" : "password"}
-                        className="font-mono bg-white"
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="ml-2"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                      >
-                        {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="ml-2"
-                        onClick={() => {
-                          navigator.clipboard.writeText(newApiKey);
-                          toast({
-                            title: "Copied to clipboard",
-                            description: "API key copied to clipboard",
-                          });
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* API key list */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Your API Keys</h3>
-                  {keysLoading ? (
-                    <div className="text-center py-8">
-                      <RefreshCcw className="h-8 w-8 mx-auto text-neutral-300 animate-spin" />
-                      <p className="mt-2 text-neutral-500">Loading API keys...</p>
-                    </div>
-                  ) : apiKeys.length === 0 ? (
-                    <div className="text-center py-8 bg-neutral-50 rounded-md border border-neutral-200">
-                      <Code className="h-8 w-8 mx-auto text-neutral-300" />
-                      <p className="mt-2 text-neutral-500">No API keys found</p>
-                      <p className="text-sm text-neutral-400">Create your first API key above</p>
-                    </div>
-                  ) : (
+              {user ? (
+                <div className="space-y-6">
+                  {/* API key creation form */}
+                  <div className="bg-neutral-50 p-4 rounded-md border border-neutral-200">
+                    <h3 className="text-lg font-semibold mb-3">Create New API Key</h3>
                     <div className="space-y-3">
-                      {apiKeys.map((key: any) => (
-                        <div 
-                          key={key.id} 
-                          className="flex items-center justify-between p-3 border border-neutral-200 rounded-md"
+                      <div>
+                        <Label htmlFor="key-name">Key Name</Label>
+                        <Input 
+                          id="key-name" 
+                          placeholder="My API Key" 
+                          className="mt-1"
+                          value={apiKeyName}
+                          onChange={(e) => setApiKeyName(e.target.value)}
+                        />
+                        <p className="text-xs text-neutral-500 mt-1">
+                          Give your key a descriptive name to remember its purpose
+                        </p>
+                      </div>
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={handleCreateApiKey}
+                          disabled={createKeyMutation.isPending || !apiKeyName.trim()}
                         >
-                          <div>
-                            <div className="font-medium">{key.name}</div>
-                            <div className="text-xs text-neutral-500 flex items-center">
-                              <Key className="h-3 w-3 mr-1" />
-                              {key.key.substring(0, 8)}•••••••••••••••
-                              <span className="ml-2">
-                                Created: {new Date(key.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleDeleteApiKey(key.id)}
-                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                          {createKeyMutation.isPending ? (
+                            <>
+                              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Create API Key
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Newly created API key */}
+                  {newApiKey && (
+                    <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
+                      <h3 className="text-lg font-semibold mb-3 flex items-center text-yellow-700">
+                        <Key className="mr-2 h-5 w-5" />
+                        Your New API Key
+                      </h3>
+                      <p className="text-sm text-yellow-700 mb-2">
+                        Copy this key now. You won't be able to see it again!
+                      </p>
+                      <div className="flex items-center">
+                        <Input 
+                          value={newApiKey} 
+                          readOnly 
+                          type={showApiKey ? "text" : "password"}
+                          className="font-mono bg-white"
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="ml-2"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                        >
+                          {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="ml-2"
+                          onClick={() => {
+                            navigator.clipboard.writeText(newApiKey);
+                            toast({
+                              title: "Copied to clipboard",
+                              description: "API key copied to clipboard",
+                            });
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   )}
+                  
+                  {/* API key list */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Your API Keys</h3>
+                    {keysLoading ? (
+                      <div className="text-center py-8">
+                        <RefreshCcw className="h-8 w-8 mx-auto text-neutral-300 animate-spin" />
+                        <p className="mt-2 text-neutral-500">Loading API keys...</p>
+                      </div>
+                    ) : apiKeys.length === 0 ? (
+                      <div className="text-center py-8 bg-neutral-50 rounded-md border border-neutral-200">
+                        <Code className="h-8 w-8 mx-auto text-neutral-300" />
+                        <p className="mt-2 text-neutral-500">No API keys found</p>
+                        <p className="text-sm text-neutral-400">Create your first API key above</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {apiKeys.map((key: any) => (
+                          <div 
+                            key={key.id} 
+                            className="flex items-center justify-between p-3 border border-neutral-200 rounded-md"
+                          >
+                            <div>
+                              <div className="font-medium">{key.name}</div>
+                              <div className="text-xs text-neutral-500 flex items-center">
+                                <Key className="h-3 w-3 mr-1" />
+                                {key.key.substring(0, 8)}•••••••••••••••
+                                <span className="ml-2">
+                                  Created: {new Date(key.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDeleteApiKey(key.id)}
+                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-primary-50 p-6 rounded-lg border border-primary-100">
+                    <h3 className="text-xl font-semibold mb-4 text-primary-900">Get Access to the Voynich Manuscript API</h3>
+                    <p className="mb-4">
+                      Create an account to generate API keys and access our Voynich Manuscript dataset programmatically. 
+                      API keys enable AI agents and researchers to interact with the platform.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Button asChild className="w-full sm:w-auto">
+                        <a href="/register">Create Free Account</a>
+                      </Button>
+                      <Button asChild variant="outline" className="w-full sm:w-auto">
+                        <a href="/login">Sign In</a>
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">API Access for AI Agents</h3>
+                    <p className="text-neutral-600 mb-4">
+                      Our API is specifically designed for AI agents to access and analyze the Voynich Manuscript:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-2 text-neutral-600">
+                      <li>Structured data endpoints optimized for machine learning applications</li>
+                      <li>Full access to manuscript pages, symbols, and annotations</li>
+                      <li>Ability to contribute analyses and findings through API endpoints</li>
+                      <li>Comprehensive error handling and response formats for automated processing</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
