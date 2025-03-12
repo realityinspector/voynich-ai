@@ -368,23 +368,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parameters: enhancedParams
       });
       
-      // In a real implementation, we would start an asynchronous job here
-      // For now, we'll just simulate the job by creating some symbols
-      
-      // This is just for demonstration purposes
+      // Simulate an asynchronous extraction job by creating actual symbols
+      // In a production environment, this would be done by a background worker
       setTimeout(async () => {
         try {
-          // Update job progress to 50%
-          await storage.updateExtractionJobProgress(job.id, 50, 50);
+          // Get the range of pages to process
+          const pageIds = [];
+          for (let id = startPageId; id <= endPageId; id++) {
+            pageIds.push(id);
+          }
           
-          // Complete the job after a few seconds
-          setTimeout(async () => {
-            await storage.completeExtractionJob(job.id);
-          }, 5000);
+          let totalSymbolsCreated = 0;
+          
+          // Update job progress to 25%
+          await storage.updateExtractionJobProgress(job.id, 25, totalSymbolsCreated);
+          
+          // Process each page sequentially
+          for (const pageId of pageIds) {
+            // Get the page
+            const page = await storage.getManuscriptPage(pageId);
+            if (!page) continue;
+            
+            // Generate random number of symbols for the page (between 100-200)
+            const symbolCount = Math.floor(Math.random() * 100) + 100;
+            const symbolsForPage = [];
+            
+            // Create symbols with random positions on the page
+            // In a real implementation, this would use computer vision to identify actual symbols
+            for (let i = 0; i < symbolCount; i++) {
+              // Generate random position and size
+              const x = Math.floor(Math.random() * 800) + 100; // Random X between 100-900
+              const y = Math.floor(Math.random() * 1000) + 100; // Random Y between 100-1100
+              const width = Math.floor(Math.random() * 40) + 20; // Random width between 20-60
+              const height = Math.floor(Math.random() * 40) + 20; // Random height between 20-60
+              
+              // Create a placeholder image path
+              // In a real implementation, this would be a path to an actual extracted image
+              const image = `symbol_${pageId}_${i}.png`;
+              
+              // Create the symbol record
+              const symbol = await storage.createSymbol({
+                pageId: pageId,
+                image: image,
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                category: undefined, // Initially uncategorized
+                frequency: undefined, // Will be calculated later
+                metadata: {
+                  extractionParameters: parameters,
+                  confidence: Math.random() * 0.5 + 0.5 // Random confidence between 0.5-1.0
+                }
+              });
+              
+              symbolsForPage.push(symbol);
+              totalSymbolsCreated++;
+            }
+            
+            // Update job progress (proportional to pages processed)
+            const progress = 25 + ((pageIds.indexOf(pageId) + 1) / pageIds.length) * 75;
+            await storage.updateExtractionJobProgress(job.id, Math.floor(progress), totalSymbolsCreated);
+          }
+          
+          // Complete the job after processing all pages
+          await storage.completeExtractionJob(job.id);
+          
+          console.log(`Extraction job ${job.id} complete: ${totalSymbolsCreated} symbols created`);
         } catch (err) {
-          console.error('Error in simulated job processing:', err);
+          console.error('Error in extraction job processing:', err);
         }
-      }, 2000);
+      }, 1000);
       
       res.json({ job });
     } catch (error) {
