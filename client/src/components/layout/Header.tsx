@@ -4,7 +4,8 @@ import {
   Search, 
   Bell, 
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  Github
 } from 'lucide-react';
 import { useState } from 'react';
 
