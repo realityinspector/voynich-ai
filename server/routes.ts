@@ -196,9 +196,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/pages', isAuthenticated, async (req, res) => {
     try {
       const offset = parseInt(req.query.offset as string) || 0;
-      const limit = parseInt(req.query.limit as string) || 20;
+      // Use a much higher default limit to ensure we get all pages
+      const limit = parseInt(req.query.limit as string) || 1000;
       
       const pages = await storage.listManuscriptPages(offset, limit);
+      
+      // Log the number of pages being returned
+      console.log(`Returning ${pages.length} manuscript pages`);
+      
       res.json({ pages });
     } catch (error) {
       console.error('Error fetching pages:', error);
@@ -518,11 +523,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             
             // For a specific range, get all pages within that range
-            const rangePages = await storage.listManuscriptPages();
+            // Use a high limit to ensure we get all pages
+            const rangePages = await storage.listManuscriptPages(0, 1000);
             // Filter pages between start and end IDs
             pageIds = rangePages
               .filter(page => page.id >= startPageId && page.id <= endPageId)
               .map(page => page.id);
+            
+            console.log(`Processing range from page ID ${startPageId} to ${endPageId}, found ${pageIds.length} pages in range`);
           }
           
           let totalSymbolsCreated = 0;

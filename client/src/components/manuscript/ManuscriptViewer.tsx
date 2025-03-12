@@ -58,9 +58,9 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
     }
   }, [initialFolioNumber]);
 
-  // Fetch all manuscript pages for navigation
+  // Fetch all manuscript pages for navigation with a high limit to get all pages
   const { data: pagesData, isLoading: pagesLoading } = useQuery({
-    queryKey: ['/api/pages'],
+    queryKey: ['/api/pages', { limit: 1000 }], // Set high limit to retrieve all pages
     retry: false,
   });
 
