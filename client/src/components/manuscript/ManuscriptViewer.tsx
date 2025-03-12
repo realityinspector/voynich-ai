@@ -29,15 +29,6 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
       fetchPageByFolio(initialFolioNumber);
     }
   }, [initialFolioNumber]);
-  
-  // Auto-select the first page when component loads if no page is selected
-  useEffect(() => {
-    if (!currentPageId && pages.length > 0) {
-      // Find the page with folioNumber "1r" or just take the first page
-      const firstPage = pages.find(p => p.folioNumber === "1r") || pages[0];
-      setCurrentPageId(firstPage.id);
-    }
-  }, [currentPageId, pages]);
 
   // Fetch all manuscript pages for navigation
   const { data: pagesData, isLoading: pagesLoading } = useQuery({
@@ -62,6 +53,15 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
   const page = pageData?.page;
   const pages = pagesData?.pages || [];
   const symbols = symbolsData?.symbols || [];
+  
+  // Auto-select the first page when component loads if no page is selected
+  useEffect(() => {
+    if (!currentPageId && pages.length > 0) {
+      // Find the page with folioNumber "1r" or just take the first page
+      const firstPage = pages.find(p => p.folioNumber === "1r") || pages[0];
+      setCurrentPageId(firstPage.id);
+    }
+  }, [currentPageId, pages]);
 
   // Navigate to adjacent pages
   const navigateToPreviousPage = () => {
