@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { useManuscript } from '@/hooks/useManuscript';
 import { useSymbols } from '@/hooks/useSymbols';
 import SymbolExtraction from '@/components/manuscript/SymbolExtraction';
@@ -60,6 +61,7 @@ import {
 export default function Symbols() {
   const [location] = useLocation();
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const { useManuscriptPages, useManuscriptPage, useExtractionJobs } = useManuscript();
   const { usePageSymbols } = useSymbols();
   
@@ -159,13 +161,15 @@ export default function Symbols() {
             </SelectContent>
           </Select>
           
-          <Button
-            onClick={() => setExtractionModalOpen(true)}
-            disabled={!selectedPageId}
-          >
-            <Puzzle className="mr-2 h-4 w-4" />
-            Extract Symbols
-          </Button>
+          {isAdmin && (
+            <Button
+              onClick={() => setExtractionModalOpen(true)}
+              disabled={!selectedPageId}
+            >
+              <Puzzle className="mr-2 h-4 w-4" />
+              Extract Symbols
+            </Button>
+          )}
         </div>
       </div>
       
