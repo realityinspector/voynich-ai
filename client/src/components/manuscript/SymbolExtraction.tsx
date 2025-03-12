@@ -117,11 +117,15 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
       advanced: showAdvanced ? config.advanced : undefined
     };
     
-    startExtractionMutation.mutate({
-      startPageId: range.startPageId,
-      endPageId: range.endPageId,
+    // For "all pages" mode, use special values (0,0) to indicate to the server
+    // that we want to process all pages
+    const extractionParams = {
+      startPageId: extractionMode === 'all' ? 0 : range.startPageId,
+      endPageId: extractionMode === 'all' ? 0 : range.endPageId,
       parameters
-    });
+    };
+    
+    startExtractionMutation.mutate(extractionParams);
   };
 
   // Simulate the extraction process (in a real app, we would poll the server for progress)
@@ -156,8 +160,24 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
 
   // Handle extraction completion
   const handleExtractionComplete = () => {
-    // Refetch symbols for the page
-    queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${pageId}`] });
+    // For all pages mode, invalidate all the page queries to refresh the data
+    if (extractionMode === 'all') {
+      // Invalidate the symbols queries for all pages
+      queryClient.invalidateQueries({ queryKey: ['/api/symbols'] });
+      
+      // Also invalidate each individual page that we have in the list
+      pages.forEach((page: any) => {
+        queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${page.id}`] });
+      });
+    } else if (extractionMode === 'range') {
+      // For range mode, invalidate the specific pages in the range
+      for (let id = range.startPageId; id <= range.endPageId; id++) {
+        queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${id}`] });
+      }
+    } else {
+      // For single page mode, just invalidate the current page
+      queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${pageId}`] });
+    }
     
     toast({
       title: "Extraction complete",
@@ -480,7 +500,12 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                     </div>
                     <h3 className="text-lg font-medium mb-2">Extraction Complete</h3>
                     <p className="text-neutral-600 mb-4">
-                      Successfully extracted {symbolsExtracted} symbols from page {folioNumber}
+                      {extractionMode === 'all' ? 
+                        `Successfully extracted ${symbolsExtracted} symbols from all ${pages.length} pages` :
+                        extractionMode === 'range' ?
+                        `Successfully extracted ${symbolsExtracted} symbols from pages ${range.startPageId} to ${range.endPageId}` :
+                        `Successfully extracted ${symbolsExtracted} symbols from page ${folioNumber}`
+                      }
                     </p>
                     <Button
                       variant="outline"
@@ -539,9 +564,16 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                   <div className="mt-4 flex justify-end">
                     <Button onClick={() => {
                       onClose();
-                      window.location.href = `/symbols?pageId=${pageId}`;
+                      // Direct to the appropriate page based on extraction mode
+                      if (extractionMode === 'all' || extractionMode === 'range') {
+                        // Go to main symbols page to see all extracted symbols
+                        window.location.href = '/symbols';
+                      } else {
+                        // For single page, go to the specific page's symbols
+                        window.location.href = `/symbols?pageId=${pageId}`;
+                      }
                     }}>
-                      View All Results ({symbolsExtracted})
+                      View {extractionMode === 'all' ? 'All' : ''} Results ({symbolsExtracted})
                     </Button>
                   </div>
                 </div>
