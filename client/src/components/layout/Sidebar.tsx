@@ -78,10 +78,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
         {/* Logo */}
         <div className="flex items-center justify-center h-16 border-b border-primary-700">
           <Link href="/">
-            <a className="flex items-center">
+            <div className="flex items-center cursor-pointer">
               <Logo />
               <span className="ml-2 text-xl font-heading font-bold">Voynich Analysis</span>
-            </a>
+            </div>
           </Link>
         </div>
         
@@ -91,27 +91,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
             {/* Navigation Groups */}
             <div className="space-y-1">
               <Link href="/">
-                <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/' 
                     ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Home className="mr-3 h-5 w-5 text-secondary" />
                   Dashboard
-                </a>
+                </div>
               </Link>
             </div>
             
             <div className="space-y-1">
               <Link href="/manuscript">
-                <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   location === '/manuscript' 
                     ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <BookOpen className="mr-3 h-5 w-5 text-secondary" />
                   Manuscript Viewer
-                </a>
+                </div>
               </Link>
             </div>
             
@@ -138,9 +138,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               {symbolsExpanded && (
                 <div className="ml-8 space-y-1">
                   <Link href="/symbols?tab=extraction">
-                    <a className="block px-2 py-1 text-sm text-white hover:text-secondary">
+                    <div className="block px-2 py-1 text-sm text-white hover:text-secondary cursor-pointer">
                       Extraction
-                    </a>
+                    </div>
                   </Link>
                   <Link href="/symbols?tab=classification">
                     <a className="block px-2 py-1 text-sm text-white hover:text-secondary">
@@ -173,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/analysis">
                 <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                   location === '/analysis' 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Bot className="mr-3 h-5 w-5 text-secondary" />
@@ -189,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/gallery">
                 <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                   location === '/gallery' 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Images className="mr-3 h-5 w-5 text-secondary" />
@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
               <Link href="/api-docs">
                 <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                   location === '/api-docs' 
-                    ? 'bg-opacity-20 bg-secondary text-white' 
+                    ? 'bg-opacity-75 bg-secondary text-white' 
                     : 'text-white hover:bg-primary-700'
                 }`}>
                   <Code className="mr-3 h-5 w-5 text-secondary" />
@@ -222,7 +222,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                   <Link href="/admin/upload">
                     <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                       location === '/admin/upload' 
-                        ? 'bg-opacity-20 bg-secondary text-white' 
+                        ? 'bg-opacity-75 bg-secondary text-white' 
                         : 'text-white hover:bg-primary-700'
                     }`}>
                       <Upload className="mr-3 h-5 w-5 text-secondary" />
@@ -235,7 +235,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                   <Link href="/admin/settings">
                     <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                       location === '/admin/settings' 
-                        ? 'bg-opacity-20 bg-secondary text-white' 
+                        ? 'bg-opacity-75 bg-secondary text-white' 
                         : 'text-white hover:bg-primary-700'
                     }`}>
                       <Settings className="mr-3 h-5 w-5 text-secondary" />
@@ -252,7 +252,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                 <Link href="/credits">
                   <a className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md ${
                     location === '/credits' 
-                      ? 'bg-opacity-20 bg-secondary text-white' 
+                      ? 'bg-opacity-75 bg-secondary text-white' 
                       : 'text-white hover:bg-primary-700'
                   }`}>
                     <div className="mr-3 h-5 w-5 text-secondary flex items-center justify-center">
