@@ -159,8 +159,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createManuscriptPage(page: InsertManuscriptPage): Promise<ManuscriptPage> {
-    // Use specific typing for manuscript pages with custom ID
-    const [newPage] = await db.insert(manuscriptPages).values({
+    // Ensure id is present or throw an error
+    if (page.id === undefined) {
+      throw new Error('Page ID is required for manuscript page creation');
+    }
+    
+    // Create a properly typed object for insertion
+    const pageData = {
       id: page.id,
       folioNumber: page.folioNumber,
       filename: page.filename,
@@ -171,7 +176,9 @@ export class DatabaseStorage implements IStorage {
       // Let defaults handle these
       // uploadedAt: will default to now
       // processingStatus: will default to 'pending'
-    }).returning();
+    };
+    
+    const [newPage] = await db.insert(manuscriptPages).values(pageData).returning();
     return newPage;
   }
 
