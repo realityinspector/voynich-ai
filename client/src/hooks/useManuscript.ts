@@ -6,7 +6,8 @@ export function useManuscript() {
   const { toast } = useToast();
 
   // Fetch all manuscript pages with pagination
-  const useManuscriptPages = (offset = 0, limit = 20) => {
+  const useManuscriptPages = (offset = 0, limit = 1000) => {
+    // Increased default limit from 20 to 1000 to get all pages
     return useQuery({
       queryKey: [`/api/pages?offset=${offset}&limit=${limit}`],
       retry: false,

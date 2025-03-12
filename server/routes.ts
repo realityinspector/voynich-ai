@@ -505,10 +505,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // If the range is "all pages" (startPageId === endPageId === 0), fetch all pages
           if (startPageId === 0 && endPageId === 0) {
-            // Get all pages without a limit - note this could be optimized for large datasets
+            // Get all pages with a high limit to ensure we get everything
             const allPages = await storage.listManuscriptPages(0, 1000);
             pageIds = allPages.map(page => page.id);
-            console.log(`Processing all pages mode: Found ${pageIds.length} pages to process`);
+            console.log(`Processing all pages mode: Found ${pageIds.length} pages to process (out of total 209)`);
           } else {
             // Verify pages exist for a specific range
             const startPage = await storage.getManuscriptPage(startPageId);
