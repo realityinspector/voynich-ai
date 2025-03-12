@@ -4,14 +4,14 @@ import { relations } from "drizzle-orm";
 import { z } from "zod";
 
 // User-related schemas
-export const userRoleEnum = pgEnum('user_role', ['admin', 'user']);
+export const userRoleEnum = pgEnum('user_role', ['admin', 'user', 'researcher']);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: userRoleEnum("role").notNull().default('user'),
+  role: userRoleEnum("role").notNull().default('researcher'),
   credits: integer("credits").notNull().default(12),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
