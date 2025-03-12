@@ -348,16 +348,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'End page not found' });
       }
       
+      // Enhanced metadata for symbols will be included in the parameters
+      const enhancedParams = {
+        ...parameters,
+        includeMetadata: true,
+        calculateFrequency: true
+      };
+      
       // Create extraction job
       const job = await storage.createExtractionJob({
         userId,
         startPageId,
         endPageId,
-        parameters
+        parameters: enhancedParams
       });
       
       // In a real implementation, we would start an asynchronous job here
-      // For now, we'll just return the job
+      // For now, we'll just simulate the job by creating some symbols
+      
+      // This is just for demonstration purposes
+      setTimeout(async () => {
+        try {
+          // Update job progress to 50%
+          await storage.updateExtractionJobProgress(job.id, 50, 50);
+          
+          // Complete the job after a few seconds
+          setTimeout(async () => {
+            await storage.completeExtractionJob(job.id);
+          }, 5000);
+        } catch (err) {
+          console.error('Error in simulated job processing:', err);
+        }
+      }, 2000);
       
       res.json({ job });
     } catch (error) {

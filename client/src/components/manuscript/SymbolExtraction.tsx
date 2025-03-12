@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Cog, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Cog, Check, RefreshCw } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
@@ -16,26 +16,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useManuscript } from '@/hooks/useManuscript';
+import { Badge } from '@/components/ui/badge';
 
 interface SymbolExtractionProps {
   pageId: number;
   folioNumber?: string;
   onClose: () => void;
+  initialMode?: 'single' | 'range' | 'all';
 }
 
 const SymbolExtraction: React.FC<SymbolExtractionProps> = ({ 
   pageId, 
   folioNumber,
-  onClose 
+  onClose,
+  initialMode = 'single'
 }) => {
   const { toast } = useToast();
+  const { useManuscriptPages } = useManuscript();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [step, setStep] = useState(1);
   const [symbolsExtracted, setSymbolsExtracted] = useState<number>(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [singlePage, setSinglePage] = useState(true);
+  const [extractionMode, setExtractionMode] = useState<'single' | 'range' | 'all'>(initialMode);
+  
+  // Fetch all pages for range selection
+  const { data: pagesData, isLoading: pagesLoading } = useManuscriptPages();
+  const pages = pagesData?.pages || [];
   
   // Extraction parameters
   const [config, setConfig] = useState({
@@ -57,6 +66,18 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
     startPageId: pageId,
     endPageId: pageId
   });
+  
+  // Set the appropriate range when in "all pages" mode
+  useEffect(() => {
+    if (extractionMode === 'all' && pages.length > 0) {
+      const firstPageId = pages[0].id;
+      const lastPageId = pages[pages.length - 1].id;
+      setRange({
+        startPageId: firstPageId,
+        endPageId: lastPageId
+      });
+    }
+  }, [extractionMode, pages]);
 
   // Mutation for starting an extraction job
   const startExtractionMutation = useMutation({
@@ -303,55 +324,81 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                 
                 {/* Processing Range */}
                 <div className="pt-2 border-t border-neutral-200">
-                  <Label className="block text-xs text-neutral-500 mb-1">Processing Range</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="block text-xs text-neutral-500">From</Label>
-                      <Select 
-                        disabled={isProcessing || singlePage}
-                        value={range.startPageId.toString()}
-                        onValueChange={(value) => setRange({ ...range, startPageId: parseInt(value) })}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Start page" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={pageId.toString()}>Page {folioNumber}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="block text-xs text-neutral-500">To</Label>
-                      <Select 
-                        disabled={isProcessing || singlePage}
-                        value={range.endPageId.toString()}
-                        onValueChange={(value) => setRange({ ...range, endPageId: parseInt(value) })}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="End page" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={pageId.toString()}>Page {folioNumber}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <Label className="block text-xs text-neutral-500 mb-2">Extraction Scope</Label>
+                  
+                  <div className="flex space-x-1 mb-3">
+                    <Badge 
+                      variant={extractionMode === 'single' ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => !isProcessing && setExtractionMode('single')}
+                    >
+                      Single Page
+                    </Badge>
+                    <Badge 
+                      variant={extractionMode === 'range' ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => !isProcessing && setExtractionMode('range')}
+                    >
+                      Page Range
+                    </Badge>
+                    <Badge 
+                      variant={extractionMode === 'all' ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => !isProcessing && setExtractionMode('all')}
+                    >
+                      All Pages
+                    </Badge>
                   </div>
-                  <div className="mt-2">
-                    <div className="flex items-center">
-                      <Checkbox 
-                        id="single-page"
-                        checked={singlePage}
-                        disabled={isProcessing}
-                        onCheckedChange={(checked) => setSinglePage(checked as boolean)}
-                      />
-                      <Label 
-                        htmlFor="single-page"
-                        className="ml-2 text-xs text-neutral-700 cursor-pointer"
-                      >
-                        Process single page only
-                      </Label>
+                  
+                  {extractionMode !== 'single' && (
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <div>
+                        <Label className="block text-xs text-neutral-500">From</Label>
+                        <Select 
+                          disabled={isProcessing || extractionMode === 'all'}
+                          value={range.startPageId.toString()}
+                          onValueChange={(value) => setRange({ ...range, startPageId: parseInt(value) })}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Start page" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {pages.map((page: any) => (
+                              <SelectItem key={`start-${page.id}`} value={page.id.toString()}>
+                                Page {page.folioNumber}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="block text-xs text-neutral-500">To</Label>
+                        <Select 
+                          disabled={isProcessing || extractionMode === 'all'}
+                          value={range.endPageId.toString()}
+                          onValueChange={(value) => setRange({ ...range, endPageId: parseInt(value) })}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="End page" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {pages.map((page: any) => (
+                              <SelectItem key={`end-${page.id}`} value={page.id.toString()}>
+                                Page {page.folioNumber}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  
+                  {extractionMode === 'all' && (
+                    <div className="text-sm text-neutral-600 bg-neutral-50 p-2 rounded border border-neutral-200 mb-2">
+                      This will extract symbols from all {pages.length} pages using the same parameters.
+                      This operation may take several minutes to complete.
+                    </div>
+                  )}
                 </div>
                 
                 {/* Start Button */}
