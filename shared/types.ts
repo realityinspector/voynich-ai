@@ -138,3 +138,67 @@ export interface SharingOptions {
   generateLink: boolean;
   allowComments: boolean;
 }
+
+// API Types
+export interface ApiKeyResponse {
+  id: number;
+  name: string;
+  key?: string; // Only included when first created
+  createdAt: string;
+  lastUsed?: string;
+}
+
+export interface ApiKeyCreateRequest {
+  name: string;
+}
+
+export interface ApiUsageStats {
+  totalRequests: number;
+  requestsToday: number;
+  requestsThisWeek: number;
+  requestsThisMonth: number;
+  tokensUsed: number;
+}
+
+// Leaderboard Types
+export interface LeaderboardEntry {
+  userId: number;
+  username: string;
+  score: number;
+  annotationCount: number;
+  upvotesReceived: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  timeframe: 'daily' | 'weekly' | 'monthly' | 'alltime';
+  date: string;
+  entries: LeaderboardEntry[];
+}
+
+// Annotation Types
+export interface AnnotationCreateRequest {
+  pageId: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string;
+  isPublic?: boolean;
+}
+
+export interface AnnotationVoteRequest {
+  voteType: 'upvote' | 'downvote';
+}
+
+// Activity Feed Types
+export interface ActivityFeedEntry {
+  id: number;
+  userId: number;
+  username: string;
+  type: 'annotation_created' | 'annotation_upvoted' | 'note_created' | 'analysis_created' | 'symbol_categorized';
+  entityId: number;
+  entityType: string;
+  metadata?: any;
+  createdAt: string;
+}

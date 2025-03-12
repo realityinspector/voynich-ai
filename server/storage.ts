@@ -62,6 +62,10 @@ export interface IStorage {
   createAnnotation(annotation: InsertAnnotation): Promise<Annotation>;
   updateAnnotation(id: number, data: Partial<Annotation>): Promise<Annotation>;
   
+  // Annotation voting operations
+  createAnnotationVote(data: { annotationId: number, userId: number, voteType: string }): Promise<any>;
+  getAnnotationVote(annotationId: number, userId: number): Promise<any | undefined>;
+  
   // Note operations
   getNote(id: number): Promise<Note | undefined>;
   getNotesByUser(userId: number): Promise<Note[]>;
@@ -98,6 +102,15 @@ export interface IStorage {
   
   // Stripe integration
   updateUserStripeInfo(userId: number, data: { stripeCustomerId: string, stripeSubscriptionId?: string }): Promise<User>;
+  
+  // Leaderboard operations
+  getLeaderboard(timeframe: string): Promise<any>;
+  updateLeaderboard(userId: number, data: { score?: number, annotationCount?: number, upvotesReceived?: number }): Promise<void>;
+  
+  // Activity feed operations
+  createActivityFeedEntry(data: { userId: number, type: string, entityId: number, entityType: string, isPublic?: boolean, metadata?: any }): Promise<any>;
+  getPublicActivityFeed(limit?: number, offset?: number): Promise<any[]>;
+  getUserActivityFeed(userId: number, limit?: number, offset?: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -471,6 +484,261 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return user;
+  }
+  
+  // Annotation voting operations
+  async createAnnotationVote(data: { annotationId: number, userId: number, voteType: string }): Promise<any> {
+    const { annotationId, userId, voteType } = data;
+    
+    // Check if user already voted on this annotation
+    const existingVote = await this.getAnnotationVote(annotationId, userId);
+    
+    if (existingVote) {
+      // If vote type is the same, do nothing
+      if (existingVote.voteType === voteType) {
+        return existingVote;
+      }
+      
+      // If vote type is different, delete existing vote and create new one
+      await db.delete(annotationVotes)
+        .where(and(
+          eq(annotationVotes.annotationId, annotationId),
+          eq(annotationVotes.userId, userId)
+        ));
+    }
+    
+    // Create the vote
+    const [vote] = await db.insert(annotationVotes)
+      .values({
+        annotationId,
+        userId,
+        voteType
+      })
+      .returning();
+    
+    // Update the annotation's vote counts
+    const voteIncrement = voteType === 'upvote' ? 1 : 0;
+    const downvoteIncrement = voteType === 'downvote' ? 1 : 0;
+    const scoreChange = voteType === 'upvote' ? 1 : -1;
+    
+    // If there was an existing vote in the opposite direction, double the score change
+    const scoreMultiplier = existingVote ? 2 : 1;
+    
+    await db.update(annotations)
+      .set({ 
+        upvotes: sqlExpr`${annotations.upvotes} + ${voteIncrement}`,
+        downvotes: sqlExpr`${annotations.downvotes} + ${downvoteIncrement}`,
+        score: sqlExpr`${annotations.score} + ${scoreChange * scoreMultiplier}`
+      })
+      .where(eq(annotations.id, annotationId));
+    
+    // Update leaderboard for the annotation creator
+    const [annotation] = await db.select()
+      .from(annotations)
+      .where(eq(annotations.id, annotationId));
+    
+    if (annotation && voteType === 'upvote') {
+      await this.updateLeaderboard(annotation.userId, { upvotesReceived: 1, score: 1 });
+    }
+    
+    return vote;
+  }
+  
+  async getAnnotationVote(annotationId: number, userId: number): Promise<any | undefined> {
+    const [vote] = await db.select()
+      .from(annotationVotes)
+      .where(and(
+        eq(annotationVotes.annotationId, annotationId),
+        eq(annotationVotes.userId, userId)
+      ));
+    
+    return vote;
+  }
+  
+  // Leaderboard operations
+  async getLeaderboard(timeframe: string): Promise<any> {
+    if (!['daily', 'weekly', 'monthly', 'alltime'].includes(timeframe)) {
+      throw new Error('Invalid timeframe');
+    }
+    
+    // Get the current date
+    const now = new Date();
+    let startDate: Date;
+    
+    // Calculate the start date based on timeframe
+    if (timeframe === 'daily') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (timeframe === 'weekly') {
+      // Get start of the week (assuming Sunday is the first day)
+      const day = now.getDay();
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+    } else if (timeframe === 'monthly') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else {
+      // alltime - use a distant past date
+      startDate = new Date(2000, 0, 1);
+    }
+    
+    // Get leaderboard for the specified timeframe
+    const leaderboardEntries = await db.select()
+      .from(leaderboards)
+      .where(and(
+        eq(leaderboards.timeframe, timeframe),
+        gte(leaderboards.date, startDate)
+      ))
+      .orderBy(asc(leaderboards.rank));
+    
+    // Join with user data to get usernames
+    const leaderboardWithUsernames = await Promise.all(
+      leaderboardEntries.map(async (entry) => {
+        const user = await this.getUser(entry.userId);
+        return {
+          ...entry,
+          username: user?.username || 'Unknown User'
+        };
+      })
+    );
+    
+    return {
+      timeframe,
+      date: startDate.toISOString(),
+      entries: leaderboardWithUsernames
+    };
+  }
+  
+  async updateLeaderboard(userId: number, data: { score?: number, annotationCount?: number, upvotesReceived?: number }): Promise<void> {
+    // Get current date info for the leaderboard entries
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Get day of week (0-6, where 0 is Sunday)
+    const dayOfWeek = now.getDay();
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
+    
+    // Get start of month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Update each timeframe
+    await this.updateLeaderboardForTimeframe(userId, 'daily', today, data);
+    await this.updateLeaderboardForTimeframe(userId, 'weekly', startOfWeek, data);
+    await this.updateLeaderboardForTimeframe(userId, 'monthly', startOfMonth, data);
+    await this.updateLeaderboardForTimeframe(userId, 'alltime', new Date(2000, 0, 1), data);
+  }
+  
+  private async updateLeaderboardForTimeframe(
+    userId: number, 
+    timeframe: string, 
+    date: Date, 
+    data: { score?: number, annotationCount?: number, upvotesReceived?: number }
+  ): Promise<void> {
+    // Check if entry exists
+    const [existingEntry] = await db.select()
+      .from(leaderboards)
+      .where(and(
+        eq(leaderboards.userId, userId),
+        eq(leaderboards.timeframe, timeframe),
+        eq(leaderboards.date, date)
+      ));
+    
+    if (existingEntry) {
+      // Update existing entry
+      await db.update(leaderboards)
+        .set({
+          score: data.score ? sqlExpr`${leaderboards.score} + ${data.score}` : leaderboards.score,
+          annotationCount: data.annotationCount ? sqlExpr`${leaderboards.annotationCount} + ${data.annotationCount}` : leaderboards.annotationCount,
+          upvotesReceived: data.upvotesReceived ? sqlExpr`${leaderboards.upvotesReceived} + ${data.upvotesReceived}` : leaderboards.upvotesReceived,
+          updatedAt: new Date()
+        })
+        .where(eq(leaderboards.id, existingEntry.id));
+    } else {
+      // Create new entry
+      await db.insert(leaderboards)
+        .values({
+          userId,
+          timeframe: timeframe as any,
+          date,
+          score: data.score || 0,
+          annotationCount: data.annotationCount || 0,
+          upvotesReceived: data.upvotesReceived || 0,
+          updatedAt: new Date()
+        });
+    }
+    
+    // Recalculate ranks for this timeframe
+    await this.recalculateLeaderboardRanks(timeframe, date);
+  }
+  
+  private async recalculateLeaderboardRanks(timeframe: string, date: Date): Promise<void> {
+    // Get all entries for this timeframe sorted by score
+    const entries = await db.select()
+      .from(leaderboards)
+      .where(and(
+        eq(leaderboards.timeframe, timeframe),
+        eq(leaderboards.date, date)
+      ))
+      .orderBy(desc(leaderboards.score));
+    
+    // Update ranks
+    for (let i = 0; i < entries.length; i++) {
+      await db.update(leaderboards)
+        .set({ rank: i + 1 })
+        .where(eq(leaderboards.id, entries[i].id));
+    }
+  }
+  
+  // Activity feed operations
+  async createActivityFeedEntry(data: { 
+    userId: number, 
+    type: string, 
+    entityId: number, 
+    entityType: string, 
+    isPublic?: boolean, 
+    metadata?: any 
+  }): Promise<any> {
+    const [entry] = await db.insert(activityFeed)
+      .values({
+        userId: data.userId,
+        type: data.type as any,
+        entityId: data.entityId,
+        entityType: data.entityType,
+        isPublic: data.isPublic === undefined ? true : data.isPublic,
+        metadata: data.metadata || {},
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return entry;
+  }
+  
+  async getPublicActivityFeed(limit: number = 20, offset: number = 0): Promise<any[]> {
+    const activities = await db.select()
+      .from(activityFeed)
+      .where(eq(activityFeed.isPublic, true))
+      .orderBy(desc(activityFeed.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    // Enhance activities with usernames
+    const enhancedActivities = await Promise.all(
+      activities.map(async (activity) => {
+        const user = await this.getUser(activity.userId);
+        return {
+          ...activity,
+          username: user?.username || 'Unknown User'
+        };
+      })
+    );
+    
+    return enhancedActivities;
+  }
+  
+  async getUserActivityFeed(userId: number, limit: number = 20, offset: number = 0): Promise<any[]> {
+    return await db.select()
+      .from(activityFeed)
+      .where(eq(activityFeed.userId, userId))
+      .orderBy(desc(activityFeed.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   // Helper methods

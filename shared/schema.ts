@@ -160,6 +160,49 @@ export const notes = pgTable("notes", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Add leaderboard tables
+export const leaderboardTimeframeEnum = pgEnum('leaderboard_timeframe', ['daily', 'weekly', 'monthly', 'alltime']);
+
+export const leaderboards = pgTable("leaderboards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  score: integer("score").default(0).notNull(),
+  annotationCount: integer("annotation_count").default(0).notNull(),
+  upvotesReceived: integer("upvotes_received").default(0).notNull(),
+  timeframe: leaderboardTimeframeEnum("timeframe").notNull(),
+  date: timestamp("date").notNull(),
+  rank: integer("rank"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const leaderboardsRelations = relations(leaderboards, ({ one }) => ({
+  user: one(users, {
+    fields: [leaderboards.userId],
+    references: [users.id],
+  }),
+}));
+
+// Activity feed
+export const activityTypeEnum = pgEnum('activity_type', ['annotation_created', 'annotation_upvoted', 'note_created', 'analysis_created', 'symbol_categorized']);
+
+export const activityFeed = pgTable("activity_feed", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: activityTypeEnum("type").notNull(),
+  entityId: integer("entity_id").notNull(), // ID of the related entity (annotation, note, etc.)
+  entityType: text("entity_type").notNull(), // Type of the entity ('annotation', 'note', etc.)
+  metadata: json("metadata"), // Additional metadata about the activity
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isPublic: boolean("is_public").default(true).notNull(),
+});
+
+export const activityFeedRelations = relations(activityFeed, ({ one }) => ({
+  user: one(users, {
+    fields: [activityFeed.userId],
+    references: [users.id],
+  }),
+}));
+
 export const notesRelations = relations(notes, ({ one }) => ({
   user: one(users, {
     fields: [notes.userId],
