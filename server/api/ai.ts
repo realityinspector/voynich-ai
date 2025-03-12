@@ -10,13 +10,13 @@ import path from 'path';
 const router = Router();
 
 // Together AI integration
-const TOGETHER_API_URL = 'https://api.together.xyz/v1/completions';
+const TOGETHER_API_URL = 'https://api.together.xyz/v1/chat/completions';
 const TOGETHER_API_KEY = process.env.TOGETHER_API_KEY || '';
 
 // Cost per analysis in credits
 const ANALYSIS_CREDIT_COST = 1;
 
-// Available models
+// Available models (using the Llama-Vision-Free model exclusively)
 const AVAILABLE_MODELS = [
   { id: 'meta-llama/Llama-Vision-Free', name: 'Llama Vision Free', creditCost: 3 },
 ];
