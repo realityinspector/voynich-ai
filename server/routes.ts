@@ -255,6 +255,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to fetch all symbols for reference selection
+  app.get('/api/symbols/all', isAuthenticated, async (req, res) => {
+    try {
+      const pages = await storage.listManuscriptPages();
+      let allSymbols: any[] = [];
+      
+      // Get symbols from all pages
+      for (const page of pages) {
+        const pageSymbols = await storage.getSymbolsByPage(page.id);
+        allSymbols = [...allSymbols, ...pageSymbols];
+      }
+      
+      // Return only necessary information to keep response size reasonable
+      const simplifiedSymbols = allSymbols.map(symbol => ({
+        id: symbol.id,
+        pageId: symbol.pageId,
+        x: symbol.x,
+        y: symbol.y,
+        width: symbol.width,
+        height: symbol.height,
+        category: symbol.category,
+        frequency: symbol.frequency
+      }));
+      
+      res.json({ symbols: simplifiedSymbols });
+    } catch (error) {
+      console.error('Error fetching all symbols:', error);
+      res.status(500).json({ message: 'Failed to fetch all symbols' });
+    }
+  });
+  
   app.get('/api/symbols/:id', isAuthenticated, async (req, res) => {
     try {
       const symbolId = parseInt(req.params.id);
