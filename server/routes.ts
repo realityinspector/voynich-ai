@@ -476,6 +476,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API Key management
+  app.get('/api/api-keys', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const keys = await storage.listApiKeysByUser(userId);
+      
+      // Don't return the actual key string
+      const safeKeys = keys.map(key => ({
+        id: key.id,
+        name: key.name,
+        createdAt: key.createdAt,
+        lastUsed: key.lastUsed
+      }));
+      
+      res.json({ keys: safeKeys });
+    } catch (error) {
+      console.error('Error fetching API keys:', error);
+      res.status(500).json({ message: 'Failed to fetch API keys' });
+    }
+  });
+  
+  app.post('/api/api-keys', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { name } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: 'API key name is required' });
+      }
+      
+      // Generate a random API key string
+      const key = Array(32)
+        .fill(0)
+        .map(() => Math.random().toString(36).charAt(2))
+        .join('');
+      
+      // Create the API key
+      const apiKey = await storage.createApiKey({
+        userId,
+        key,
+        name,
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+      });
+      
+      // Return the key to the user - this is the only time the key is visible
+      res.status(201).json({
+        id: apiKey.id,
+        name: apiKey.name,
+        key: apiKey.key,
+        createdAt: apiKey.createdAt
+      });
+    } catch (error) {
+      console.error('Error creating API key:', error);
+      res.status(500).json({ message: 'Failed to create API key' });
+    }
+  });
+  
+  app.delete('/api/api-keys/:id', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const keyId = parseInt(req.params.id);
+      
+      // Check if the key exists and belongs to the user
+      const keys = await storage.listApiKeysByUser(userId);
+      const keyExists = keys.some(key => key.id === keyId);
+      
+      if (!keyExists) {
+        return res.status(404).json({ message: 'API key not found' });
+      }
+      
+      // Delete the key
+      await storage.deleteApiKey(keyId);
+      
+      res.json({ message: 'API key deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting API key:', error);
+      res.status(500).json({ message: 'Failed to delete API key' });
+    }
+  });
+
   // Helper functions
   function extractFolioNumber(filename: string): string {
     // Extract folio number from filename
