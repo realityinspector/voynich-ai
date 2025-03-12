@@ -161,15 +161,13 @@ export default function Symbols() {
             </SelectContent>
           </Select>
           
-          {isAdmin && (
-            <Button
-              onClick={() => setExtractionModalOpen(true)}
-              disabled={!selectedPageId}
-            >
-              <Puzzle className="mr-2 h-4 w-4" />
-              Extract Symbols
-            </Button>
-          )}
+          <Button
+            onClick={() => setExtractionModalOpen(true)}
+            disabled={!selectedPageId}
+          >
+            <Puzzle className="mr-2 h-4 w-4" />
+            Extract Symbols
+          </Button>
         </div>
       </div>
       
@@ -182,184 +180,161 @@ export default function Symbols() {
         
         {/* Extraction Tab */}
         <TabsContent value="extraction" className="space-y-6">
-          {!isAdmin ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Restricted Access</CardTitle>
-                <CardDescription>
-                  Symbol extraction functionality is restricted to administrators
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-10">
-                  <Puzzle className="h-16 w-16 mx-auto text-neutral-300 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Administrator Access Required</h3>
-                  <p className="text-neutral-600 max-w-md mx-auto mb-4">
-                    Symbol extraction is a resource-intensive operation that requires administrator privileges.
-                    Please contact an administrator if you need symbols extracted from manuscript pages.
-                  </p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Symbol Extraction Jobs</CardTitle>
+              <CardDescription>
+                Recent symbol extraction tasks and their status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {jobsLoading ? (
+                <div className="text-center py-8">
+                  <Clock className="h-8 w-8 mx-auto text-neutral-300 animate-spin" />
+                  <p className="mt-2 text-neutral-500">Loading extraction jobs...</p>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Symbol Extraction Jobs</CardTitle>
-                  <CardDescription>
-                    Recent symbol extraction tasks and their status
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {jobsLoading ? (
-                    <div className="text-center py-8">
-                      <Clock className="h-8 w-8 mx-auto text-neutral-300 animate-spin" />
-                      <p className="mt-2 text-neutral-500">Loading extraction jobs...</p>
-                    </div>
-                  ) : extractionJobs.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Puzzle className="h-8 w-8 mx-auto text-neutral-300" />
-                      <p className="mt-2 text-neutral-500">No extraction jobs yet</p>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setExtractionModalOpen(true)}
-                        className="mt-2"
-                      >
-                        Start a new extraction
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {extractionJobs.map(job => (
-                        <div key={job.id} className="flex items-center border rounded-md p-3">
-                          <div className="flex-1">
-                            <div className="flex items-center">
-                              <span className="font-medium">
-                                Pages {job.startPage?.folioNumber} to {job.endPage?.folioNumber}
-                              </span>
-                              <Badge 
-                                variant={job.status === 'completed' ? 'default' : 'outline'}
-                                className="ml-2"
-                              >
-                                {job.status}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-neutral-500 flex items-center mt-1">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {new Date(job.startedAt).toLocaleString()}
-                              {job.symbolsExtracted > 0 && (
-                                <span className="ml-2">• {job.symbolsExtracted} symbols extracted</span>
-                              )}
-                            </div>
-                            {job.status !== 'completed' && (
-                              <div className="w-full bg-neutral-200 rounded-full h-2 mt-2">
-                                <div 
-                                  className="bg-primary h-2 rounded-full" 
-                                  style={{ width: `${job.progress}%` }}
-                                ></div>
-                              </div>
-                            )}
+              ) : extractionJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <Puzzle className="h-8 w-8 mx-auto text-neutral-300" />
+                  <p className="mt-2 text-neutral-500">No extraction jobs yet</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setExtractionModalOpen(true)}
+                    className="mt-2"
+                  >
+                    Start a new extraction
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {extractionJobs.map(job => (
+                    <div key={job.id} className="flex items-center border rounded-md p-3">
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <span className="font-medium">
+                            Pages {job.startPage?.folioNumber} to {job.endPage?.folioNumber}
+                          </span>
+                          <Badge 
+                            variant={job.status === 'completed' ? 'default' : 'outline'}
+                            className="ml-2"
+                          >
+                            {job.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-neutral-500 flex items-center mt-1">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {new Date(job.startedAt).toLocaleString()}
+                          {job.symbolsExtracted > 0 && (
+                            <span className="ml-2">• {job.symbolsExtracted} symbols extracted</span>
+                          )}
+                        </div>
+                        {job.status !== 'completed' && (
+                          <div className="w-full bg-neutral-200 rounded-full h-2 mt-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full" 
+                              style={{ width: `${job.progress}%` }}
+                            ></div>
                           </div>
-                          <div>
-                            {job.status === 'completed' ? (
-                              <CheckCircle2 className="h-5 w-5 text-success" />
-                            ) : job.status === 'failed' ? (
-                              <Ban className="h-5 w-5 text-destructive" />
-                            ) : (
-                              <Clock className="h-5 w-5 text-primary animate-pulse" />
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Extraction Parameters</CardTitle>
-                  <CardDescription>
-                    Configure parameters for symbol extraction
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Threshold Method</Label>
-                        <Select defaultValue="adaptive">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select threshold method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="otsu">Otsu</SelectItem>
-                            <SelectItem value="adaptive">Adaptive</SelectItem>
-                            <SelectItem value="simple">Simple</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        )}
                       </div>
-                      
                       <div>
-                        <Label>Threshold Value</Label>
-                        <div className="flex items-center space-x-2">
-                          <Input type="number" defaultValue="128" min="0" max="255" />
-                          <span className="text-sm text-neutral-500">(0-255)</span>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label>Minimum Symbol Size</Label>
-                        <div className="flex items-center space-x-2">
-                          <Input type="number" defaultValue="16" min="4" max="100" />
-                          <span className="text-sm text-neutral-500">pixels</span>
-                        </div>
+                        {job.status === 'completed' ? (
+                          <CheckCircle2 className="h-5 w-5 text-success" />
+                        ) : job.status === 'failed' ? (
+                          <Ban className="h-5 w-5 text-destructive" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-primary animate-pulse" />
+                        )}
                       </div>
                     </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Enhancement Preset</Label>
-                        <Select defaultValue="none">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select enhancement" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            <SelectItem value="default">Default</SelectItem>
-                            <SelectItem value="high-contrast">High Contrast</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label>Contour Detection</Label>
-                        <Select defaultValue="simple">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select contour method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="simple">Simple</SelectItem>
-                            <SelectItem value="tc89-l1">TC89 L1</SelectItem>
-                            <SelectItem value="tc89-kcos">TC89 KCOS</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="pt-4">
-                        <Button
-                          onClick={() => setExtractionModalOpen(true)}
-                          className="w-full"
-                        >
-                          Configure & Run Extraction
-                        </Button>
-                      </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Extraction Parameters</CardTitle>
+              <CardDescription>
+                Configure parameters for symbol extraction
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label>Threshold Method</Label>
+                    <Select defaultValue="adaptive">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select threshold method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="otsu">Otsu</SelectItem>
+                        <SelectItem value="adaptive">Adaptive</SelectItem>
+                        <SelectItem value="simple">Simple</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Threshold Value</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input type="number" defaultValue="128" min="0" max="255" />
+                      <span className="text-sm text-neutral-500">(0-255)</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+                  
+                  <div>
+                    <Label>Minimum Symbol Size</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input type="number" defaultValue="16" min="4" max="100" />
+                      <span className="text-sm text-neutral-500">pixels</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label>Enhancement Preset</Label>
+                    <Select defaultValue="none">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select enhancement" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="default">Default</SelectItem>
+                        <SelectItem value="high-contrast">High Contrast</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Contour Detection</Label>
+                    <Select defaultValue="simple">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select contour method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="simple">Simple</SelectItem>
+                        <SelectItem value="tc89-l1">TC89 L1</SelectItem>
+                        <SelectItem value="tc89-kcos">TC89 KCOS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <Button
+                      onClick={() => setExtractionModalOpen(true)}
+                      className="w-full"
+                    >
+                      Configure & Run Extraction
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         {/* Classification Tab */}
