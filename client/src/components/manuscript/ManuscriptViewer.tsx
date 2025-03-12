@@ -20,7 +20,9 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
   const [extractionModalOpen, setExtractionModalOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [viewMode, setViewMode] = useState<'original' | 'enhanced' | 'high-contrast'>('original');
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
 
   // Fetch the initial page by folio number if provided
@@ -253,31 +255,59 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
               </div>
               
               {/* Display Symbols */}
-              <div className="absolute inset-0 pointer-events-none">
-                {symbols.map(symbol => {
-                  const isHighlighted = false; // Will be implemented with state later
-                  return (
-                    <div 
-                      key={symbol.id}
-                      className={`absolute border-2 rounded-md ${isHighlighted 
-                        ? 'border-primary bg-primary/20 z-20' 
-                        : 'border-accent/60 hover:border-primary hover:bg-primary/10 z-10'}`}
-                      style={{
-                        top: `${symbol.y}px`,
-                        left: `${symbol.x}px`,
-                        width: `${symbol.width}px`,
-                        height: `${symbol.height}px`,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // We'll add symbol selection logic here later
-                        window.location.href = `/symbol-gallery?pageId=${currentPageId}&symbolId=${symbol.id}`;
-                      }}
-                    />
-                  );
-                })}
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{ 
+                  // We need this div to match the image size and position
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {page && (
+                  <div 
+                    className="relative"
+                    style={{
+                      // Set default dimensions if page width/height are not available
+                      width: page.width ? `${page.width * zoomLevel}px` : '800px',
+                      height: page.height ? `${page.height * zoomLevel}px` : '1200px',
+                      maxWidth: '100%',
+                      maxHeight: '100%'
+                    }}
+                  >
+                    {symbols.map(symbol => {
+                      const isHighlighted = false; // Will be implemented with state later
+                      
+                      // Scale the symbol dimensions according to the zoom level
+                      const scaledX = symbol.x * zoomLevel;
+                      const scaledY = symbol.y * zoomLevel;
+                      const scaledWidth = symbol.width * zoomLevel;
+                      const scaledHeight = symbol.height * zoomLevel;
+                      
+                      return (
+                        <div 
+                          key={symbol.id}
+                          className={`absolute border-2 rounded-md ${isHighlighted 
+                            ? 'border-primary bg-primary/20 z-20' 
+                            : 'border-accent/60 hover:border-primary hover:bg-primary/10 z-10'}`}
+                          style={{
+                            top: `${scaledY}px`,
+                            left: `${scaledX}px`,
+                            width: `${scaledWidth}px`,
+                            height: `${scaledHeight}px`,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            pointerEvents: 'auto' // Enable mouse interactions
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/symbol-gallery?pageId=${currentPageId}&symbolId=${symbol.id}`;
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </>
           ) : (
