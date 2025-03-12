@@ -178,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                 }`}>
                   <Bot className="mr-3 h-5 w-5 text-secondary" />
                   AI Analysis
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-accent">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-secondary text-primary-900">
                     {credits} Credits
                   </span>
                 </div>
