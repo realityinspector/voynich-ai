@@ -106,16 +106,16 @@ export default function Symbols() {
   
   // Mock symbol categories for visualization
   const categories = [
-    { name: 'Unknown', count: symbols.filter(s => !s.category).length },
-    { name: 'Character', count: symbols.filter(s => s.category === 'character').length || 8 },
-    { name: 'Diagram', count: symbols.filter(s => s.category === 'diagram').length || 4 },
-    { name: 'Plant', count: symbols.filter(s => s.category === 'plant').length || 6 },
-    { name: 'Astronomical', count: symbols.filter(s => s.category === 'astronomical').length || 3 },
-    { name: 'Decorative', count: symbols.filter(s => s.category === 'decorative').length || 5 }
+    { name: 'Unknown', count: symbols.filter((s: any) => !s.category).length },
+    { name: 'Character', count: symbols.filter((s: any) => s.category === 'character').length || 8 },
+    { name: 'Diagram', count: symbols.filter((s: any) => s.category === 'diagram').length || 4 },
+    { name: 'Plant', count: symbols.filter((s: any) => s.category === 'plant').length || 6 },
+    { name: 'Astronomical', count: symbols.filter((s: any) => s.category === 'astronomical').length || 3 },
+    { name: 'Decorative', count: symbols.filter((s: any) => s.category === 'decorative').length || 5 }
   ];
   
   // Filter symbols based on search and category
-  const filteredSymbols = symbols.filter(symbol => {
+  const filteredSymbols = symbols.filter((symbol: any) => {
     // Apply category filter
     if (categoryFilter !== 'all' && symbol.category !== categoryFilter) {
       return false;
@@ -153,7 +153,7 @@ export default function Symbols() {
               <SelectValue placeholder="Select a page" />
             </SelectTrigger>
             <SelectContent>
-              {pages.map(page => (
+              {pages.map((page: any) => (
                 <SelectItem key={page.id} value={page.id.toString()}>
                   Page {page.folioNumber}
                 </SelectItem>
@@ -207,7 +207,7 @@ export default function Symbols() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {extractionJobs.map(job => (
+                  {extractionJobs.map((job: any) => (
                     <div key={job.id} className="flex items-center border rounded-md p-3">
                       <div className="flex-1">
                         <div className="flex items-center">
