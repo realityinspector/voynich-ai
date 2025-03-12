@@ -30,7 +30,8 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const manuscriptSectionEnum = pgEnum('manuscript_section', ['herbal', 'astronomical', 'biological', 'cosmological', 'pharmaceutical', 'recipes', 'unknown']);
 
 export const manuscriptPages = pgTable("manuscript_pages", {
-  id: serial("id").primaryKey(),
+  // Using integer instead of serial to allow manual ID setting based on folio number
+  id: integer("id").primaryKey(),
   folioNumber: text("folio_number").notNull().unique(),
   filename: text("filename").notNull(),
   section: manuscriptSectionEnum("section").default('unknown'),
@@ -238,11 +239,15 @@ export const insertUserSchema = createInsertSchema(users).omit({
   stripeSubscriptionId: true,
 });
 
-export const insertManuscriptPageSchema = createInsertSchema(manuscriptPages).omit({
-  id: true,
-  uploadedAt: true,
-  processingStatus: true,
-});
+// Allow passing custom IDs based on folio numbers
+export const insertManuscriptPageSchema = createInsertSchema(manuscriptPages)
+  .omit({
+    uploadedAt: true,
+    processingStatus: true,
+  })
+  .extend({
+    id: z.number().optional(), // Make ID optional so we can set it based on folio number
+  });
 
 export const insertSymbolSchema = createInsertSchema(symbols).omit({
   id: true,

@@ -299,6 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             } else {
               // Create a new manuscript page entry with the specified ID from folio number
+              // The ID field is allowed in our schema because we've modified insertManuscriptPageSchema
               page = await storage.createManuscriptPage({
                 id: pageId,
                 folioNumber,

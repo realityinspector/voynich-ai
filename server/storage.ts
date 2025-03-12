@@ -159,7 +159,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createManuscriptPage(page: InsertManuscriptPage): Promise<ManuscriptPage> {
-    const [newPage] = await db.insert(manuscriptPages).values(page).returning();
+    // Use specific typing for manuscript pages with custom ID
+    const [newPage] = await db.insert(manuscriptPages).values({
+      id: page.id,
+      folioNumber: page.folioNumber,
+      filename: page.filename,
+      section: page.section,
+      width: page.width,
+      height: page.height,
+      uploadedBy: page.uploadedBy,
+      // Let defaults handle these
+      // uploadedAt: will default to now
+      // processingStatus: will default to 'pending'
+    }).returning();
     return newPage;
   }
 
