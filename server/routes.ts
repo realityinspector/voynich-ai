@@ -10,6 +10,7 @@ import { manuscriptPages, users } from "@shared/schema";
 import { UploadedFileMetadata } from "@shared/types";
 import aiRouter from "./api/ai";
 import paymentsRouter from "./api/payments";
+import externalRouter from "./api/external";
 
 // Setup multer for file uploads
 const upload = multer({
@@ -53,9 +54,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // API routes
   
-  // Mount AI and payment routes
+  // Mount API routes
   app.use('/api/ai', aiRouter);
   app.use('/api/payments', paymentsRouter);
+  app.use('/api/external', externalRouter);
   
   // Manuscript page routes
   app.get('/api/pages', isAuthenticated, async (req, res) => {
