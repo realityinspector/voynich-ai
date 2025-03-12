@@ -26,6 +26,11 @@ import {
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Alpha Banner */}
+      <div className="bg-amber-500 text-amber-950 text-center py-2 px-4 font-medium">
+        ⚠️ Alpha Software - This platform is still in active development
+      </div>
+      
       {/* Header */}
       <header className="relative z-10 border-b bg-background flex items-center px-6 py-4">
         <div className="flex items-center gap-2">
