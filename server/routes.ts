@@ -471,8 +471,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Symbol extraction job routes
-  app.post('/api/extraction/start', isAuthenticated, async (req, res) => {
+  // Symbol extraction job routes - restricted to admin users
+  app.post('/api/extraction/start', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const userId = req.user!.id;
       const { startPageId, endPageId, parameters } = req.body;

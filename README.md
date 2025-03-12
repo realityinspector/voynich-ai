@@ -35,10 +35,10 @@ The Voynich Manuscript Research Platform is an advanced AI-powered tool designed
 - Comprehensive API documentation
 - Usage tracking and management
 
-### 👥 User Roles
-- **Researchers**: Can browse the manuscript, view symbols, and read public annotations
-- **Contributors**: Can create annotations, notes, and run basic analysis
-- **Administrators**: Have full access to upload pages and manage the platform
+### 👥 User Roles and Access Tiers
+- **Researchers**: The default role for new users. Can browse the manuscript, view symbols, and read public annotations. Focus on research consumption.
+- **Contributors**: Can create annotations, notes, and run basic analysis. Enables active participation in the research community.
+- **Administrators**: Have full access to upload pages, extract symbols, and manage the platform. Limited to designated users like "realityinspector".
 
 ## Technical Architecture
 - TypeScript/Node.js backend with Express
@@ -53,6 +53,20 @@ The Voynich Manuscript Research Platform is an advanced AI-powered tool designed
 3. Explore existing symbols and annotations
 4. Create your own annotations and notes
 5. Use AI tools to analyze patterns and propose interpretations
+
+## Administrator Setup
+To grant administrator privileges to a user (e.g., "realityinspector"):
+
+```bash
+# Run the admin setup script
+node scripts/set-admin.js realityinspector
+```
+
+This script will update the user's role to "admin" in the database, allowing them to:
+- Upload new manuscript pages
+- Extract symbols from pages using computer vision
+- Access administrative settings
+- Manage user permissions
 
 ## Join the Research Community
 The Voynich Manuscript has puzzled scholars for centuries. By joining our platform, you become part of a collaborative effort to decode this mysterious document through the combined power of human expertise and artificial intelligence.

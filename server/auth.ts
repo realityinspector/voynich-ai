@@ -121,7 +121,7 @@ export function setupAuthRoutes(app: express.Express) {
         email,
         password: hashedPassword,
         institution,
-        role: isFirstUser ? 'admin' : 'user',
+        role: isFirstUser ? 'admin' : 'researcher', // Default to researcher role
         credits: 12 // Start with 12 free credits
       });
       

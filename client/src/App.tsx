@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 
 // Import pages
+import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
@@ -20,47 +21,71 @@ import Credits from "@/pages/credits";
 
 // Import components
 import AppLayout from "@/components/layout/AppLayout";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "./hooks/use-toast";
 
 function Router() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Check if user is authenticated on app load
   useEffect(() => {
     const checkAuth = async () => {
       try {
         await apiRequest('GET', '/api/auth/session');
+        setIsAuthenticated(true);
       } catch (error) {
-        // If we're not already on the login page and not on register, redirect to login
-        if (location !== '/login' && location !== '/register') {
+        setIsAuthenticated(false);
+        // If trying to access a protected route, redirect to login
+        if (
+          location !== '/' && 
+          location !== '/login' && 
+          location !== '/register'
+        ) {
           toast({
-            title: "Session expired",
-            description: "Please log in to continue",
+            title: "Authentication required",
+            description: "Please log in to access this page",
             variant: "destructive",
           });
           setLocation('/login');
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [location]);
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   
   return (
     <Switch>
+      {/* Public routes */}
+      <Route path="/">
+        {isAuthenticated ? (
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        ) : (
+          <Home />
+        )}
+      </Route>
+      
       {/* Auth routes - no layout */}
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       
       {/* Protected routes with layout */}
-      <Route path="/">
-        <AppLayout>
-          <Dashboard />
-        </AppLayout>
-      </Route>
       
       <Route path="/manuscript">
         <AppLayout>
