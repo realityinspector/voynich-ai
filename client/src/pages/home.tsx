@@ -14,6 +14,13 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "@/components/Logo";
+import { VoynichPageSVG } from "@/components/VoynichPageSVG";
+import { 
+  BotanicalSymbol, 
+  AstronomicalSymbol, 
+  CosmologicalSymbol, 
+  PharmaceuticalSymbol 
+} from "@/components/VoynichSymbols";
 
 export default function Home() {
   return (
@@ -61,11 +68,7 @@ export default function Home() {
             </div>
             <div className="relative rounded-lg overflow-hidden border shadow-xl">
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/20"></div>
-              <img 
-                src="/samples/voynich_page.svg" 
-                alt="Voynich Manuscript" 
-                className="w-full object-cover"
-              />
+              <VoynichPageSVG width={500} height={600} className="w-full" />
             </div>
           </div>
         </div>
@@ -261,7 +264,7 @@ export default function Home() {
             {/* Symbol 1 */}
             <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
-                <img src="/samples/symbol1.svg" alt="Voynich Symbol 1" className="h-32 w-32" />
+                <BotanicalSymbol width={80} height={80} />
               </div>
               <CardContent className="pt-4">
                 <h3 className="font-medium text-center">Botanical Symbol</h3>
@@ -272,7 +275,7 @@ export default function Home() {
             {/* Symbol 2 */}
             <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
-                <img src="/samples/symbol2.svg" alt="Voynich Symbol 2" className="h-32 w-32" />
+                <AstronomicalSymbol width={80} height={80} />
               </div>
               <CardContent className="pt-4">
                 <h3 className="font-medium text-center">Astronomical Symbol</h3>
@@ -283,7 +286,7 @@ export default function Home() {
             {/* Symbol 3 */}
             <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
-                <img src="/samples/symbol3.svg" alt="Voynich Symbol 3" className="h-32 w-32" />
+                <CosmologicalSymbol width={80} height={80} />
               </div>
               <CardContent className="pt-4">
                 <h3 className="font-medium text-center">Cosmological Symbol</h3>
@@ -294,7 +297,7 @@ export default function Home() {
             {/* Symbol 4 */}
             <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <div className="p-6 bg-[#f8f3e6] flex justify-center items-center h-40">
-                <img src="/samples/symbol4.svg" alt="Voynich Symbol 4" className="h-32 w-32" />
+                <PharmaceuticalSymbol width={80} height={80} />
               </div>
               <CardContent className="pt-4">
                 <h3 className="font-medium text-center">Pharmaceutical Symbol</h3>
