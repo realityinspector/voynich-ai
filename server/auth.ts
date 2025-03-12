@@ -40,18 +40,40 @@ export function setupAuth(app: express.Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log(`Login attempt for username: ${username}`);
+        
         const user = await storage.getUserByUsername(username);
         if (!user) {
+          console.log(`User ${username} not found in database`);
           return done(null, false, { message: 'Incorrect username or password' });
         }
-
-        const isPasswordValid = await compare(password, user.password);
-        if (!isPasswordValid) {
-          return done(null, false, { message: 'Incorrect username or password' });
+        
+        console.log(`User found: ${user.username}, attempting password verification`);
+        console.log(`Password hash from DB: ${user.password.substring(0, 10)}...`);
+        
+        // Check if password is present
+        if (!password) {
+          console.log('Empty password provided');
+          return done(null, false, { message: 'Password is required' });
         }
 
+        // Try/catch around bcrypt compare to prevent crashes on invalid hash
+        try {
+          const isPasswordValid = await compare(password, user.password);
+          console.log(`Password valid: ${isPasswordValid}`);
+          
+          if (!isPasswordValid) {
+            return done(null, false, { message: 'Incorrect username or password' });
+          }
+        } catch (bcryptError) {
+          console.error('Bcrypt comparison error:', bcryptError);
+          return done(null, false, { message: 'Authentication error' });
+        }
+
+        console.log(`Authentication successful for ${username}`);
         return done(null, user);
       } catch (error) {
+        console.error('Authentication error:', error);
         return done(error);
       }
     })
@@ -76,17 +98,37 @@ export function setupAuth(app: express.Express) {
 export function setupAuthRoutes(app: express.Express) {
   // Login route
   app.post('/api/auth/login', (req, res, next) => {
+    console.log('Login endpoint called:', req.body.username);
+    
+    // Input validation
+    if (!req.body.username || !req.body.password) {
+      console.log('Missing credentials:', { 
+        username: !!req.body.username, 
+        password: !!req.body.password 
+      });
+      return res.status(400).json({ message: 'Username and password are required' });
+    }
+    
     passport.authenticate('local', (err, user, info) => {
       if (err) {
+        console.error('Passport authentication error:', err);
         return next(err);
       }
+      
       if (!user) {
+        console.log('Authentication failed:', info.message);
         return res.status(401).json({ message: info.message });
       }
-      req.login(user, (err) => {
-        if (err) {
-          return next(err);
+      
+      console.log('Authentication successful for user:', user.username);
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error('Session login error:', loginErr);
+          return next(loginErr);
         }
+        
+        console.log('User session created successfully');
         
         // Return user info without sensitive data
         const { password, ...safeUser } = user;
