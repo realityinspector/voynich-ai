@@ -44,7 +44,7 @@ router.get('/credits', isAuthenticated, async (req, res) => {
 router.post('/analyze', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const { pageId, prompt, modelParams, isPublic }: AIAnalysisRequest = req.body;
+    const { pageId, prompt, modelParams, references, isPublic }: AIAnalysisRequest = req.body;
     
     // Validate required fields
     if (!pageId || !prompt || !modelParams) {
@@ -84,8 +84,40 @@ router.post('/analyze', isAuthenticated, async (req, res) => {
       return res.status(500).json({ message: 'Image file not available' });
     }
     
+    // Process references if provided
+    let processedReferences = [];
+    if (references && references.length > 0) {
+      for (const ref of references) {
+        if (ref.type === 'page') {
+          const refPage = await storage.getManuscriptPage(ref.id);
+          if (refPage) {
+            processedReferences.push({
+              type: 'page',
+              id: ref.id,
+              folioNumber: refPage.folioNumber,
+              section: refPage.section
+            });
+          }
+        } else if (ref.type === 'symbol') {
+          const symbol = await storage.getSymbol(ref.id);
+          if (symbol) {
+            processedReferences.push({
+              type: 'symbol',
+              id: ref.id,
+              pageId: symbol.pageId,
+              category: symbol.category,
+              x: symbol.x,
+              y: symbol.y,
+              width: symbol.width,
+              height: symbol.height
+            });
+          }
+        }
+      }
+    }
+    
     // Query Together AI
-    const aiResult = await queryTogetherAI(prompt, modelParams, page);
+    const aiResult = await queryTogetherAI(prompt, modelParams, page, processedReferences);
     
     // Use credits
     await storage.useUserCredits(
@@ -190,8 +222,36 @@ router.get('/shared/:token', async (req, res) => {
 });
 
 // Helper function to query the Together AI API
-async function queryTogetherAI(prompt: string, modelParams: any, page: any) {
+async function queryTogetherAI(prompt: string, modelParams: any, page: any, references: any[] = []) {
   try {
+    // Generate reference information for the prompt
+    let referencesText = '';
+    if (references && references.length > 0) {
+      referencesText = '\nReferenced Information:\n';
+      
+      // Process page references
+      const pageRefs = references.filter(ref => ref.type === 'page');
+      if (pageRefs.length > 0) {
+        referencesText += '\nManuscript Pages:\n';
+        pageRefs.forEach((ref, index) => {
+          referencesText += `- Page ${ref.folioNumber || `#${ref.id}`}: Section ${ref.section || 'Unknown'}\n`;
+        });
+      }
+      
+      // Process symbol references
+      const symbolRefs = references.filter(ref => ref.type === 'symbol');
+      if (symbolRefs.length > 0) {
+        referencesText += '\nManuscript Symbols:\n';
+        symbolRefs.forEach((ref, index) => {
+          referencesText += `- Symbol ID #${ref.id}: ${ref.category || 'Uncategorized'} symbol`;
+          if (ref.pageId) {
+            referencesText += ` from page ID #${ref.pageId}`;
+          }
+          referencesText += '\n';
+        });
+      }
+    }
+    
     // Full prompt with context
     const fullPrompt = `
 You are an expert analyzing the Voynich Manuscript, a mysterious illustrated codex from the early 15th century written in an unknown writing system.
@@ -199,10 +259,10 @@ You are an expert analyzing the Voynich Manuscript, a mysterious illustrated cod
 Folio Information:
 - Page number: ${page.folioNumber}
 - Section: ${page.section || 'Unknown'}
-
+${referencesText}
 User Query: ${prompt}
 
-Provide a detailed, scholarly analysis based on the available information about this manuscript. Be sure to clearly distinguish between established facts and speculative interpretations.
+Provide a detailed, scholarly analysis based on the available information about this manuscript. Be sure to clearly distinguish between established facts and speculative interpretations. When referring to specific pages or symbols that were referenced, refer to them by their identifiers.
 `;
 
     const response = await fetch(TOGETHER_API_URL, {

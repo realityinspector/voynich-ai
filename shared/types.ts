@@ -30,10 +30,17 @@ export interface AIModelParams {
   maxTokens?: number;
 }
 
+export interface Reference {
+  id: number;
+  type: 'page' | 'symbol';
+  label: string;
+}
+
 export interface AIAnalysisRequest {
   pageId: number;
   prompt: string;
   modelParams: AIModelParams;
+  references?: Reference[];
   isPublic: boolean;
 }
 

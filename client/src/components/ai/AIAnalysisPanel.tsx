@@ -78,12 +78,14 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ pageId, folioNumber }
   const { data: modelsData, isLoading: modelsLoading } = useQuery({
     queryKey: ['/api/ai/models'],
     retry: false,
-    onSuccess: (data) => {
-      if (data.models?.length > 0 && !selectedModel) {
-        setSelectedModel(data.models[0].id);
-      }
-    }
   });
+  
+  // Set the default model when data is loaded
+  useEffect(() => {
+    if (modelsData?.models?.length > 0 && !selectedModel) {
+      setSelectedModel(modelsData.models[0].id);
+    }
+  }, [modelsData, selectedModel]);
   
   // Get user credits
   const { data: creditsData, isLoading: creditsLoading } = useQuery({
