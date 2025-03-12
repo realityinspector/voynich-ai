@@ -186,42 +186,6 @@ router.get('/gallery', async (req, res) => {
   }
 });
 
-// Get a single analysis result by ID
-router.get('/analysis/:id', async (req, res) => {
-  try {
-    const analysisId = parseInt(req.params.id);
-    if (isNaN(analysisId)) {
-      return res.status(400).json({ message: 'Invalid analysis ID' });
-    }
-
-    // Get the analysis result
-    const analysis = await storage.getAnalysisResult(analysisId);
-    
-    if (!analysis) {
-      return res.status(404).json({ message: 'Analysis result not found' });
-    }
-
-    // Check authorization - only owner or public analyses can be viewed
-    const isPublic = analysis.isPublic;
-    const isOwner = req.user && req.user.id === analysis.userId;
-    
-    if (!isPublic && !isOwner) {
-      return res.status(403).json({ message: 'You do not have permission to view this analysis' });
-    }
-
-    // Fetch manuscript page info if pageId exists
-    let page = null;
-    if (analysis.pageId) {
-      page = await storage.getManuscriptPage(analysis.pageId);
-    }
-
-    res.json({ analysis, page });
-  } catch (error) {
-    console.error('Error fetching analysis result:', error);
-    res.status(500).json({ message: 'Failed to fetch analysis result' });
-  }
-});
-
 // Share analysis result
 router.post('/share/:id', isAuthenticated, async (req, res) => {
   try {
