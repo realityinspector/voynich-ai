@@ -418,13 +418,19 @@ export default function Symbols() {
                 <div className="text-center py-8">
                   <Puzzle className="h-8 w-8 mx-auto text-neutral-300" />
                   <p className="mt-2 text-neutral-500">No symbols extracted yet</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setExtractionModalOpen(true)}
-                    className="mt-2"
-                  >
-                    Extract Symbols
-                  </Button>
+                  {isAdmin ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setExtractionModalOpen(true)}
+                      className="mt-2"
+                    >
+                      Extract Symbols
+                    </Button>
+                  ) : (
+                    <p className="mt-2 text-sm text-neutral-500">
+                      Administrator access required for symbol extraction
+                    </p>
+                  )}
                 </div>
               ) : filteredSymbols.length === 0 ? (
                 <div className="text-center py-8">
@@ -572,13 +578,19 @@ export default function Symbols() {
                 <div className="text-center py-8">
                   <Puzzle className="h-8 w-8 mx-auto text-neutral-300" />
                   <p className="mt-2 text-neutral-500">No symbols extracted yet</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setExtractionModalOpen(true)}
-                    className="mt-2"
-                  >
-                    Extract Symbols
-                  </Button>
+                  {isAdmin ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setExtractionModalOpen(true)}
+                      className="mt-2"
+                    >
+                      Extract Symbols
+                    </Button>
+                  ) : (
+                    <p className="mt-2 text-sm text-neutral-500">
+                      Administrator access required for symbol extraction
+                    </p>
+                  )}
                 </div>
               ) : (
                 <SymbolPositionViewer
