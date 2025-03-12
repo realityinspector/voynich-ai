@@ -480,13 +480,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/extraction/start', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const { startPageId, endPageId, parameters } = req.body;
+      let { startPageId, endPageId, parameters } = req.body;
+      
+      // Handle "all pages" mode (startPageId === endPageId === 0)
+      if (startPageId === 0 && endPageId === 0) {
+        console.log("All pages mode detected - fetching actual page IDs for database constraints");
+        
+        // Get all pages to find the min and max IDs for the job table
+        const allPages = await storage.listManuscriptPages(0, 1000);
+        if (allPages.length > 0) {
+          // Sort pages by ID to get first and last
+          allPages.sort((a, b) => a.id - b.id);
+          startPageId = allPages[0].id;
+          endPageId = allPages[allPages.length - 1].id;
+          
+          console.log(`All pages mode: Using startPageId=${startPageId}, endPageId=${endPageId} for job record`);
+        } else {
+          return res.status(400).json({ message: "No manuscript pages found" });
+        }
+      }
       
       // Enhanced metadata for symbols will be included in the parameters
       const enhancedParams = {
         ...parameters,
         includeMetadata: true,
-        calculateFrequency: true
+        calculateFrequency: true,
+        isAllPagesMode: (startPageId === 0 && endPageId === 0) // Store original flag
       };
       
       // Create extraction job

@@ -458,10 +458,9 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                   
                   {extractionMode === 'all' && (
                     <div className="text-sm text-neutral-600 bg-neutral-50 p-2 rounded border border-neutral-200 mb-2">
-                      This will extract symbols from all {pages.length} pages (out of total 209) using the same parameters.
-                      This operation may take several minutes to complete.
+                      This will extract symbols from all 209 pages (out of total 209) using the same parameters. This operation may take several minutes to complete.
                       <div className="mt-1 text-blue-700 font-medium">
-                        Note: All {pages.length > 200 ? '209' : pages.length} manuscript pages will be processed.
+                        Note: All 209 manuscript pages will be processed.
                       </div>
                     </div>
                   )}
@@ -516,7 +515,7 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
                     <h3 className="text-lg font-medium mb-2">Extraction Complete</h3>
                     <p className="text-neutral-600 mb-4">
                       {extractionMode === 'all' ? 
-                        `Successfully extracted ${symbolsExtracted} symbols from all ${pages.length} pages` :
+                        `Successfully extracted ${symbolsExtracted} symbols from all 209 pages` :
                         extractionMode === 'range' ?
                         `Successfully extracted ${symbolsExtracted} symbols from pages ${range.startPageId} to ${range.endPageId}` :
                         `Successfully extracted ${symbolsExtracted} symbols from page ${folioNumber}`
