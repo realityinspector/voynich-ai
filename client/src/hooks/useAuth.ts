@@ -25,6 +25,8 @@ export function useAuth() {
   const { data: sessionData, isLoading: sessionLoading, refetch } = useQuery({
     queryKey: ['/api/auth/session'],
     retry: false,
+    retryOnMount: false,
+    refetchOnWindowFocus: true,
     onError: () => {
       setIsLoading(false);
     },

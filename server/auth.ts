@@ -18,8 +18,10 @@ export function setupSession(app: express.Express) {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for development
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        httpOnly: true,
+        sameSite: 'lax',
       },
       store: new MemoryStore({
         checkPeriod: 86400000, // 24 hours

@@ -44,9 +44,11 @@ export default function Login() {
   
   const onSubmit = async (values: LoginCredentials) => {
     setIsInvalid(false);
+    console.log("Login attempt with:", values.username);
     try {
       await login(values);
     } catch (error) {
+      console.error("Login error:", error);
       setIsInvalid(true);
     }
   };
