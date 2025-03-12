@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Loader } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -33,6 +34,7 @@ const loginSchema = z.object({
 export default function Login() {
   const { login, loginIsLoading } = useAuth();
   const [isInvalid, setIsInvalid] = useState(false);
+  const { toast } = useToast();
   
   const form = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
