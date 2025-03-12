@@ -18,10 +18,6 @@ const ANALYSIS_CREDIT_COST = 1;
 
 // Available models
 const AVAILABLE_MODELS = [
-  { id: 'meta-llama/Llama-3-8b-instruct', name: 'Llama 3 8B Instruct', creditCost: 1 },
-  { id: 'meta-llama/Llama-3-70b-instruct', name: 'Llama 3 70B Instruct', creditCost: 2 },
-  { id: 'meta-llama/Llama-3-8b-herd', name: 'Llama 3 8B Herd', creditCost: 1 },
-  { id: 'meta-llama/Llama-3-70b-herd', name: 'Llama 3 70B Herd', creditCost: 2 },
   { id: 'meta-llama/Llama-Vision-Free', name: 'Llama Vision Free', creditCost: 3 },
 ];
 
