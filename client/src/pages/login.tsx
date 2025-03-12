@@ -45,11 +45,28 @@ export default function Login() {
   const onSubmit = async (values: LoginCredentials) => {
     setIsInvalid(false);
     console.log("Login attempt with:", values.username);
+    
     try {
+      // Show a manual toast for debugging
+      toast({
+        title: 'Login attempt',
+        description: `Attempting login with username: ${values.username}`,
+      });
+      
       await login(values);
+      
+      // This will only execute if login doesn't throw an error
+      console.log("Login successful");
     } catch (error) {
       console.error("Login error:", error);
       setIsInvalid(true);
+      
+      // Show a manual toast for debugging
+      toast({
+        title: 'Login failed',
+        description: `Error: ${error instanceof Error ? error.message : String(error)}`,
+        variant: 'destructive'
+      });
     }
   };
   

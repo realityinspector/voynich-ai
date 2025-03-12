@@ -21,19 +21,31 @@ export function useAuth() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
+  interface SessionResponse {
+    user: {
+      id: number;
+      username: string;
+      email: string;
+      role: string;
+      credits: number;
+    }
+  }
+  
   // Fetch current session
-  const { data: sessionData, isLoading: sessionLoading, refetch } = useQuery({
+  const { data: sessionData, isLoading: sessionLoading, refetch } = useQuery<SessionResponse>({
     queryKey: ['/api/auth/session'],
     retry: false,
     retryOnMount: false,
     refetchOnWindowFocus: true,
-    onError: () => {
-      setIsLoading(false);
-    },
-    onSuccess: () => {
+    enabled: true
+  });
+  
+  // Handle loading state
+  useEffect(() => {
+    if (!sessionLoading) {
       setIsLoading(false);
     }
-  });
+  }, [sessionLoading]);
 
   // Login mutation
   const loginMutation = useMutation({
@@ -104,13 +116,13 @@ export function useAuth() {
   });
 
   // Helper function to check if user is authenticated
-  const isAuthenticated = !!sessionData?.user;
+  const isAuthenticated = sessionData ? !!sessionData.user : false;
 
   // Helper function to check if user is admin
-  const isAdmin = isAuthenticated && sessionData?.user?.role === 'admin';
+  const isAdmin = isAuthenticated && sessionData && sessionData.user && sessionData.user.role === 'admin';
 
   // Current user data
-  const user = sessionData?.user;
+  const user = sessionData && sessionData.user ? sessionData.user : null;
 
   return {
     user,
