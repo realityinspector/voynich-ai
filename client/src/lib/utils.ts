@@ -22,3 +22,38 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
+
+/**
+ * Format AI response text to highlight bracketed references
+ * @param result The AI analysis result or text string
+ * @returns Formatted HTML string with highlighted references
+ */
+export function formatAIResponse(result: any): string {
+  // Handle different result formats
+  let text = '';
+  
+  if (typeof result === 'string') {
+    text = result;
+  } else if (result && result.result) {
+    // For complete result objects
+    const aiData = result.result;
+    
+    // For chat completions format (new format)
+    if (aiData.choices && aiData.choices.length > 0 && aiData.choices[0].message) {
+      text = aiData.choices[0].message.content;
+    } else if (aiData.choices && aiData.choices.length > 0 && aiData.choices[0].text) {
+      // For older completion format
+      text = aiData.choices[0].text;
+    } else {
+      // Fallback to string representation
+      return JSON.stringify(aiData, null, 2);
+    }
+  } else {
+    return 'No data available';
+  }
+  
+  // Replace {pageXXX} and {symbolXXX} with highlighted spans
+  return text.replace(/\{(page|symbol)(\d+)\}/g, (match) => {
+    return `<span class="reference-highlight">${match}</span>`;
+  });
+}

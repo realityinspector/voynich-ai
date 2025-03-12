@@ -13,6 +13,7 @@ import Manuscript from "@/pages/manuscript";
 import Symbols from "@/pages/symbols";
 import SymbolGallery from "@/pages/symbol-gallery";
 import Analysis from "@/pages/analysis";
+import AnalysisResult from "@/pages/analysis-result";
 import Gallery from "@/pages/gallery";
 import ApiDocs from "@/pages/api-docs";
 import Upload from "@/pages/admin/upload";
@@ -123,6 +124,12 @@ function Router() {
       <Route path="/analysis">
         <AppLayout>
           <Analysis />
+        </AppLayout>
+      </Route>
+      
+      <Route path="/analysis/:id">
+        <AppLayout>
+          <AnalysisResult />
         </AppLayout>
       </Route>
       
