@@ -253,20 +253,32 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
               </div>
               
               {/* Display Symbols */}
-              {symbols.map(symbol => (
-                <div 
-                  key={symbol.id}
-                  className="absolute border-2 border-accent rounded-md animate-pulse"
-                  style={{
-                    top: `${symbol.y}px`,
-                    left: `${symbol.x}px`,
-                    width: `${symbol.width}px`,
-                    height: `${symbol.height}px`,
-                    transform: `scale(${zoomLevel})`,
-                    transformOrigin: 'top left'
-                  }}
-                />
-              ))}
+              <div className="absolute inset-0 pointer-events-none">
+                {symbols.map(symbol => {
+                  const isHighlighted = false; // Will be implemented with state later
+                  return (
+                    <div 
+                      key={symbol.id}
+                      className={`absolute border-2 rounded-md ${isHighlighted 
+                        ? 'border-primary bg-primary/20 z-20' 
+                        : 'border-accent/60 hover:border-primary hover:bg-primary/10 z-10'}`}
+                      style={{
+                        top: `${symbol.y}px`,
+                        left: `${symbol.x}px`,
+                        width: `${symbol.width}px`,
+                        height: `${symbol.height}px`,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // We'll add symbol selection logic here later
+                        window.location.href = `/symbol-gallery?pageId=${currentPageId}&symbolId=${symbol.id}`;
+                      }}
+                    />
+                  );
+                })}
+              </div>
             </>
           ) : (
             <div className="text-white text-center p-8">

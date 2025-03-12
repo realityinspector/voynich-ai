@@ -204,7 +204,7 @@ const PageInfo: React.FC<PageInfoProps> = ({ page, symbolCount }) => {
                   </div>
                   
                   <div className="text-center">
-                    <Link href={`/symbols?pageId=${page.id}`}>
+                    <Link href={`/symbol-gallery?pageId=${page.id}`}>
                       <button className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary/90">
                         View All Symbols
                       </button>

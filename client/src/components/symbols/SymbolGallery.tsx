@@ -40,14 +40,15 @@ import {
 interface SymbolGalleryProps {
   pageId: number;
   onBack?: () => void;
+  initialSymbolId?: number;
 }
 
-const SymbolGallery: React.FC<SymbolGalleryProps> = ({ pageId, onBack }) => {
+const SymbolGallery: React.FC<SymbolGalleryProps> = ({ pageId, onBack, initialSymbolId }) => {
   const [, setLocation] = useLocation();
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [selectedSymbol, setSelectedSymbol] = useState<number | null>(null);
+  const [selectedSymbol, setSelectedSymbol] = useState<number | null>(initialSymbolId || null);
   
   // Fetch page details
   const { data: pageData, isLoading: pageLoading } = useQuery({
@@ -63,6 +64,24 @@ const SymbolGallery: React.FC<SymbolGalleryProps> = ({ pageId, onBack }) => {
   
   const page = pageData?.page;
   const symbols = symbolsData?.symbols || [];
+  
+  // If we have an initialSymbolId, ensure the view mode is appropriate
+  useEffect(() => {
+    if (initialSymbolId && !symbolsLoading && symbols.length > 0) {
+      // If we have a selected symbol with a specific ID, switch to grid or list view
+      if (viewMode === 'map') {
+        setViewMode('grid');
+      }
+      
+      // Scroll to the symbol element after a short delay
+      setTimeout(() => {
+        const symbolElement = document.getElementById(`symbol-${initialSymbolId}`);
+        if (symbolElement) {
+          symbolElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+    }
+  }, [initialSymbolId, symbolsLoading, symbols.length, viewMode]);
   
   // Filter symbols based on search and category
   const filteredSymbols = symbols.filter(symbol => {
@@ -196,6 +215,7 @@ const SymbolGallery: React.FC<SymbolGalleryProps> = ({ pageId, onBack }) => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
               {filteredSymbols.map(symbol => (
                 <Card 
+                  id={`symbol-${symbol.id}`}
                   key={symbol.id}
                   className={`cursor-pointer hover:ring-2 hover:ring-primary transition-all ${
                     selectedSymbol === symbol.id ? 'ring-2 ring-primary' : ''
@@ -263,6 +283,7 @@ const SymbolGallery: React.FC<SymbolGalleryProps> = ({ pageId, onBack }) => {
                   <tbody>
                     {filteredSymbols.map(symbol => (
                       <tr 
+                        id={`symbol-${symbol.id}`}
                         key={symbol.id} 
                         className={`border-b hover:bg-neutral-50 cursor-pointer ${
                           selectedSymbol === symbol.id ? 'bg-neutral-100' : ''

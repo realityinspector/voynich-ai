@@ -85,6 +85,12 @@ function Router() {
         </AppLayout>
       </Route>
       
+      <Route path="/symbol-gallery">
+        <AppLayout>
+          <SymbolGallery />
+        </AppLayout>
+      </Route>
+      
       <Route path="/analysis">
         <AppLayout>
           <Analysis />
