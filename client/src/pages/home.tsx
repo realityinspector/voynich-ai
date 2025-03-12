@@ -81,9 +81,14 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="relative rounded-lg overflow-hidden border shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/20"></div>
-              <VoynichPageSVG width={500} height={600} className="w-full" />
+            <div className="relative flex flex-col items-center">
+              <div className="relative rounded-lg overflow-hidden border shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/20"></div>
+                <VoynichPageSVG width={500} height={600} className="w-full" />
+              </div>
+              <p className="text-center text-muted-foreground mt-2 italic text-sm">
+                AI Generated Synthetic Voynich Page
+              </p>
             </div>
           </div>
         </div>
