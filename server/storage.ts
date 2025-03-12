@@ -49,6 +49,7 @@ export interface IStorage {
   // Manuscript page operations
   getManuscriptPage(id: number): Promise<ManuscriptPage | undefined>;
   getManuscriptPageByFolio(folioNumber: string): Promise<ManuscriptPage | undefined>;
+  // Changed default limit from 20 to 1000
   listManuscriptPages(offset?: number, limit?: number): Promise<ManuscriptPage[]>;
   createManuscriptPage(page: InsertManuscriptPage): Promise<ManuscriptPage>;
   updateManuscriptPage(id: number, data: Partial<ManuscriptPage>): Promise<ManuscriptPage>;
@@ -165,13 +166,19 @@ export class DatabaseStorage implements IStorage {
     return page;
   }
 
-  async listManuscriptPages(offset: number = 0, limit: number = 20): Promise<ManuscriptPage[]> {
-    return await db
+  async listManuscriptPages(offset: number = 0, limit: number = 1000): Promise<ManuscriptPage[]> {
+    // Increased default limit to 1000 to make sure we get all pages
+    const results = await db
       .select()
       .from(manuscriptPages)
       .orderBy(asc(manuscriptPages.folioNumber))
       .limit(limit)
       .offset(offset);
+    
+    // Log the number of pages retrieved
+    console.log(`Storage: Retrieved ${results.length} manuscript pages from database`);
+    
+    return results;
   }
 
   async createManuscriptPage(page: InsertManuscriptPage): Promise<ManuscriptPage> {

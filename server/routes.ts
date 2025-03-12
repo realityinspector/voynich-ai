@@ -508,6 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get all pages without a limit - note this could be optimized for large datasets
             const allPages = await storage.listManuscriptPages(0, 1000);
             pageIds = allPages.map(page => page.id);
+            console.log(`Processing all pages mode: Found ${pageIds.length} pages to process`);
           } else {
             // Verify pages exist for a specific range
             const startPage = await storage.getManuscriptPage(startPageId);

@@ -162,6 +162,9 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
   const handleExtractionComplete = () => {
     // For all pages mode, invalidate all the page queries to refresh the data
     if (extractionMode === 'all') {
+      // Log to check how many pages we're processing
+      console.log(`Invalidating cache for all ${pages.length} pages`);
+      
       // Invalidate the symbols queries for all pages
       queryClient.invalidateQueries({ queryKey: ['/api/symbols'] });
       
@@ -169,13 +172,22 @@ const SymbolExtraction: React.FC<SymbolExtractionProps> = ({
       pages.forEach((page: any) => {
         queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${page.id}`] });
       });
+      
+      // Additionally invalidate extraction jobs
+      queryClient.invalidateQueries({ queryKey: ['/api/extraction/jobs'] });
     } else if (extractionMode === 'range') {
       // For range mode, invalidate the specific pages in the range
+      console.log(`Invalidating cache for pages in range ${range.startPageId} to ${range.endPageId}`);
+      
       for (let id = range.startPageId; id <= range.endPageId; id++) {
         queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${id}`] });
       }
+      
+      // Additionally invalidate extraction jobs
+      queryClient.invalidateQueries({ queryKey: ['/api/extraction/jobs'] });
     } else {
       // For single page mode, just invalidate the current page
+      console.log(`Invalidating cache for single page ${pageId}`);
       queryClient.invalidateQueries({ queryKey: [`/api/symbols/page/${pageId}`] });
     }
     
