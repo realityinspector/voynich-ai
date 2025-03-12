@@ -21,9 +21,35 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [viewMode, setViewMode] = useState<'original' | 'enhanced' | 'high-contrast'>('original');
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
+  const [highlightedSymbolId, setHighlightedSymbolId] = useState<number | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
+  
+  // Get highlighted symbol ID from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const symbolId = searchParams.get('symbolId');
+    if (symbolId) {
+      const id = parseInt(symbolId, 10);
+      setHighlightedSymbolId(id);
+      
+      // If there's a highlighted symbol, scroll to center it after a short delay
+      // to allow the component to render
+      setTimeout(() => {
+        const symbolElement = document.querySelector(`[data-symbol-id="${id}"]`);
+        if (symbolElement) {
+          symbolElement.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center'
+          });
+        }
+      }, 500);
+    } else {
+      setHighlightedSymbolId(null);
+    }
+  }, []);
 
   // Fetch the initial page by folio number if provided
   useEffect(() => {
@@ -233,10 +259,18 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
             <>
               {/* Manuscript Image */}
               <img 
+                ref={imageRef}
                 src={`/uploads/${page.filename}`}
                 alt={`Voynich Manuscript Page ${page.folioNumber}`}
                 className="max-w-full max-h-full object-contain transition-transform"
                 style={{ transform: `scale(${zoomLevel})` }}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  setImageDimensions({
+                    width: img.naturalWidth,
+                    height: img.naturalHeight
+                  });
+                }}
               />
               
               {/* Overlay Controls (shown on hover) */}
@@ -261,32 +295,54 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
                   // We need this div to match the image size and position
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  overflow: 'hidden' // Prevent symbols from extending outside container
                 }}
               >
                 {page && (
                   <div 
                     className="relative"
                     style={{
-                      // Set default dimensions if page width/height are not available
-                      width: page.width ? `${page.width * zoomLevel}px` : '800px',
-                      height: page.height ? `${page.height * zoomLevel}px` : '1200px',
+                      // Use the captured image dimensions, with fallbacks
+                      width: imageDimensions 
+                        ? `${imageDimensions.width * zoomLevel}px` 
+                        : page.width 
+                          ? `${page.width * zoomLevel}px` 
+                          : '800px',
+                      height: imageDimensions 
+                        ? `${imageDimensions.height * zoomLevel}px` 
+                        : page.height 
+                          ? `${page.height * zoomLevel}px` 
+                          : '1200px',
                       maxWidth: '100%',
                       maxHeight: '100%'
                     }}
                   >
                     {symbols.map(symbol => {
-                      const isHighlighted = false; // Will be implemented with state later
+                      const isHighlighted = highlightedSymbolId === symbol.id;
                       
-                      // Scale the symbol dimensions according to the zoom level
-                      const scaledX = symbol.x * zoomLevel;
-                      const scaledY = symbol.y * zoomLevel;
-                      const scaledWidth = symbol.width * zoomLevel;
-                      const scaledHeight = symbol.height * zoomLevel;
+                      // Calculate actual display ratio
+                      const imageNaturalWidth = imageDimensions?.width || 800;
+                      const imageNaturalHeight = imageDimensions?.height || 1200;
+                      const containerWidth = imageRef.current?.clientWidth || imageNaturalWidth;
+                      const containerHeight = imageRef.current?.clientHeight || imageNaturalHeight;
+                      
+                      // Calculate the actual scaling factor based on displayed image size
+                      const displayRatio = Math.min(
+                        containerWidth / imageNaturalWidth,
+                        containerHeight / imageNaturalHeight
+                      ) * zoomLevel;
+                      
+                      // Scale the symbol dimensions according to the display ratio
+                      const scaledX = symbol.x * displayRatio;
+                      const scaledY = symbol.y * displayRatio;
+                      const scaledWidth = symbol.width * displayRatio;
+                      const scaledHeight = symbol.height * displayRatio;
                       
                       return (
                         <div 
                           key={symbol.id}
+                          data-symbol-id={symbol.id}
                           className={`absolute border-2 rounded-md ${isHighlighted 
                             ? 'border-primary bg-primary/20 z-20' 
                             : 'border-accent/60 hover:border-primary hover:bg-primary/10 z-10'}`}
@@ -297,7 +353,8 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({
                             height: `${scaledHeight}px`,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
-                            pointerEvents: 'auto' // Enable mouse interactions
+                            pointerEvents: 'auto', // Enable mouse interactions
+                            boxShadow: isHighlighted ? '0 0 0 4px rgba(255, 255, 255, 0.5)' : 'none'
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
