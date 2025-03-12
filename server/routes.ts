@@ -477,17 +477,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const { startPageId, endPageId, parameters } = req.body;
       
-      // Verify pages exist
-      const startPage = await storage.getManuscriptPage(startPageId);
-      if (!startPage) {
-        return res.status(404).json({ message: 'Start page not found' });
-      }
-      
-      const endPage = await storage.getManuscriptPage(endPageId);
-      if (!endPage) {
-        return res.status(404).json({ message: 'End page not found' });
-      }
-      
       // Enhanced metadata for symbols will be included in the parameters
       const enhancedParams = {
         ...parameters,
@@ -507,10 +496,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a production environment, this would be done by a background worker
       setTimeout(async () => {
         try {
-          // Get the range of pages to process
-          const pageIds = [];
-          for (let id = startPageId; id <= endPageId; id++) {
-            pageIds.push(id);
+          let pageIds = [];
+          
+          // If the range is "all pages" (startPageId === endPageId === 0), fetch all pages
+          if (startPageId === 0 && endPageId === 0) {
+            // Get all pages without a limit - note this could be optimized for large datasets
+            const allPages = await storage.listManuscriptPages(0, 1000);
+            pageIds = allPages.map(page => page.id);
+          } else {
+            // Verify pages exist for a specific range
+            const startPage = await storage.getManuscriptPage(startPageId);
+            if (!startPage) {
+              console.error('Start page not found:', startPageId);
+              return;
+            }
+            
+            const endPage = await storage.getManuscriptPage(endPageId);
+            if (!endPage) {
+              console.error('End page not found:', endPageId);
+              return;
+            }
+            
+            // For a specific range, get all pages within that range
+            const rangePages = await storage.listManuscriptPages();
+            // Filter pages between start and end IDs
+            pageIds = rangePages
+              .filter(page => page.id >= startPageId && page.id <= endPageId)
+              .map(page => page.id);
           }
           
           let totalSymbolsCreated = 0;
