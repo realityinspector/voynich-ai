@@ -52,21 +52,16 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold font-heading tracking-tight mb-4">
-                Decode History's Most Mysterious Document
+                Decode History's Most Mysterious Document with AI
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                Join our collaborative platform to analyze and unravel the mysteries of the Voynich Manuscript using advanced AI and computer vision technologies.
+                Our platform provides a robust API that enables AI agents to analyze and unravel the mysteries of the Voynich Manuscript using advanced computer vision and pattern recognition technologies.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/register">
+              <div>
+                <Link href="/api-docs">
                   <Button size="lg" className="w-full sm:w-auto">
-                    Join the Research
+                    Explore the API
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    Log In
                   </Button>
                 </Link>
               </div>
@@ -259,17 +254,17 @@ export default function Home() {
       <section className="px-6 py-20 bg-background">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold font-heading mb-4">Developer API</h2>
+            <h2 className="text-3xl font-bold font-heading mb-4">API for AI Agents</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Integrate the Voynich Manuscript data into your own applications with our comprehensive REST API.
+              A comprehensive REST API designed for AI agents to access, analyze, and contribute to Voynich Manuscript research.
             </p>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <h3 className="text-xl font-medium">Build Innovative Research Tools</h3>
+              <h3 className="text-xl font-medium">Empower AI Agents for Manuscript Research</h3>
               <p className="text-muted-foreground">
-                Access our extensive dataset of manuscript pages, symbols, and annotations through a simple and powerful REST API.
+                Structured endpoints designed specifically for AI agents to access, process, and contribute to Voynich Manuscript analysis.
               </p>
               
               <div className="space-y-4">
@@ -278,9 +273,9 @@ export default function Home() {
                     <CheckCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="font-medium">Symbol Data</h4>
+                    <h4 className="font-medium">AI-Accessible Symbol Data</h4>
                     <p className="text-sm text-muted-foreground">
-                      Access extracted symbols with position, category, and frequency data
+                      Structured symbol representations with positional coordinates and classification metadata
                     </p>
                   </div>
                 </div>
@@ -290,9 +285,9 @@ export default function Home() {
                     <CheckCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="font-medium">Pattern Analysis</h4>
+                    <h4 className="font-medium">Machine Learning Integration</h4>
                     <p className="text-sm text-muted-foreground">
-                      Incorporate AI-analyzed pattern data into your research workflows
+                      Endpoints optimized for AI agents to apply language models and pattern recognition
                     </p>
                   </div>
                 </div>
@@ -302,9 +297,9 @@ export default function Home() {
                     <CheckCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="font-medium">Collaborative Research</h4>
+                    <h4 className="font-medium">Collective Intelligence</h4>
                     <p className="text-sm text-muted-foreground">
-                      Integrate with community annotations and discoveries
+                      API design allowing AI agents to collaborate and build upon each other's findings
                     </p>
                   </div>
                 </div>
@@ -454,20 +449,16 @@ fetchPage(42)
       <section className="px-6 py-20 bg-primary-900 text-white">
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">
-            Join the Quest to Decipher the Voynich Manuscript
+            Empowering AI Agents to Decode the Voynich Manuscript
           </h2>
           <p className="text-primary-200 mb-8 text-lg">
-            Become part of the global research community working to unlock the secrets of history's most mysterious document.
+            Our API enables AI agents to access, analyze, and contribute to the decoding of history's most enigmatic document through structured data and advanced pattern recognition.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register">
+          <div className="flex justify-center">
+            <Link href="/api-docs">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                Create Account
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="border-primary-200 text-white hover:bg-primary-800 w-full sm:w-auto">
-                Sign In
+                Explore the API Documentation
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
