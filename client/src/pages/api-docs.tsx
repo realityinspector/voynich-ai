@@ -192,10 +192,15 @@ fetch('https://api.example.com/api/ai/analyze', {
             <CardContent className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Introduction</h3>
-                <p className="text-neutral-600">
+                <p className="text-neutral-600 mb-4">
                   The Voynich Manuscript Analysis Platform API provides programmatic access to manuscript pages, 
                   extracted symbols, annotations, and AI analysis capabilities. This enables researchers and 
                   developers to build custom tools and integrations for studying the Voynich Manuscript.
+                </p>
+                <p className="text-neutral-600">
+                  Our platform is designed to be collaborative and competitive. Contributions made through the API 
+                  (such as annotations, symbol classifications, and analysis results) are tracked, can receive 
+                  upvotes from the community, and contribute to your ranking on our leaderboards.
                 </p>
               </div>
               
@@ -568,6 +573,385 @@ fetch('https://api.example.com/api/ai/analyze', {
       "creditCost": "number"
     }
   ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="external">
+                  <AccordionTrigger className="text-lg font-medium">
+                    External API Integration Endpoints
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-2">
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-md font-mono mr-2">GET</span>
+                        <span className="font-mono text-sm">/api/external/pages</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Get a list of manuscript pages (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Query Parameters</h4>
+                        <table className="w-full text-xs mb-3">
+                          <thead className="bg-neutral-50">
+                            <tr>
+                              <th className="p-2 text-left">Parameter</th>
+                              <th className="p-2 text-left">Type</th>
+                              <th className="p-2 text-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">offset</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Number of items to skip (default: 0)</td>
+                            </tr>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">limit</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Number of items to return (default: 20)</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "pages": [
+    {
+      "id": "number",
+      "folioNumber": "string",
+      "filename": "string",
+      "section": "string",
+      "width": "number",
+      "height": "number",
+      "uploadedAt": "string"
+    }
+  ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                    
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-md font-mono mr-2">GET</span>
+                        <span className="font-mono text-sm">/api/external/pages/:id</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Get details of a specific manuscript page (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Path Parameters</h4>
+                        <table className="w-full text-xs mb-3">
+                          <thead className="bg-neutral-50">
+                            <tr>
+                              <th className="p-2 text-left">Parameter</th>
+                              <th className="p-2 text-left">Type</th>
+                              <th className="p-2 text-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">id</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Page ID</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "page": {
+    "id": "number",
+    "folioNumber": "string",
+    "filename": "string",
+    "section": "string",
+    "width": "number",
+    "height": "number",
+    "uploadedAt": "string"
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                    
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-md font-mono mr-2">GET</span>
+                        <span className="font-mono text-sm">/api/external/symbols/page/:pageId</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Get symbols for a specific page (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Path Parameters</h4>
+                        <table className="w-full text-xs mb-3">
+                          <thead className="bg-neutral-50">
+                            <tr>
+                              <th className="p-2 text-left">Parameter</th>
+                              <th className="p-2 text-left">Type</th>
+                              <th className="p-2 text-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">pageId</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Page ID</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "symbols": [
+    {
+      "id": "number",
+      "pageId": "number",
+      "image": "string",
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "category": "string",
+      "frequency": "number"
+    }
+  ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                    
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-md font-mono mr-2">POST</span>
+                        <span className="font-mono text-sm">/api/external/symbols</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Submit a new symbol classification or extraction (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Request Body</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono mb-3">
+{`{
+  "pageId": "number",
+  "x": "number",
+  "y": "number",
+  "width": "number",
+  "height": "number",
+  "image": "string", // Base64 encoded image
+  "category": "string", // Optional classification
+  "metadata": "object" // Optional additional data
+}`}
+                        </pre>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "symbol": {
+    "id": "number",
+    "pageId": "number",
+    "image": "string",
+    "x": "number",
+    "y": "number",
+    "width": "number",
+    "height": "number",
+    "category": "string",
+    "createdAt": "string"
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                    
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-md font-mono mr-2">POST</span>
+                        <span className="font-mono text-sm">/api/external/annotations</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Create a new annotation (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Request Body</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono mb-3">
+{`{
+  "pageId": "number",
+  "x": "number",
+  "y": "number",
+  "width": "number",
+  "height": "number",
+  "content": "string",
+  "isPublic": "boolean" // true to make this visible to other users
+}`}
+                        </pre>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "annotation": {
+    "id": "number",
+    "pageId": "number",
+    "userId": "number",
+    "x": "number",
+    "y": "number",
+    "width": "number",
+    "height": "number",
+    "content": "string",
+    "isPublic": "boolean",
+    "createdAt": "string",
+    "upvotes": "number",
+    "downvotes": "number"
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                    
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-md font-mono mr-2">POST</span>
+                        <span className="font-mono text-sm">/api/external/annotations/:id/vote</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Vote on an annotation (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Path Parameters</h4>
+                        <table className="w-full text-xs mb-3">
+                          <thead className="bg-neutral-50">
+                            <tr>
+                              <th className="p-2 text-left">Parameter</th>
+                              <th className="p-2 text-left">Type</th>
+                              <th className="p-2 text-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">id</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Annotation ID</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4 className="text-xs font-medium mb-1">Request Body</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono mb-3">
+{`{
+  "voteType": "upvote" | "downvote"
+}`}
+                        </pre>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "success": true,
+  "message": "Vote recorded",
+  "annotation": {
+    "id": "number",
+    "upvotes": "number",
+    "downvotes": "number"
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-md font-mono mr-2">GET</span>
+                        <span className="font-mono text-sm">/api/external/leaderboard</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Get the contributor leaderboard (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Query Parameters</h4>
+                        <table className="w-full text-xs mb-3">
+                          <thead className="bg-neutral-50">
+                            <tr>
+                              <th className="p-2 text-left">Parameter</th>
+                              <th className="p-2 text-left">Type</th>
+                              <th className="p-2 text-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">timeframe</td>
+                              <td className="p-2">string</td>
+                              <td className="p-2">Timeframe: 'daily', 'weekly', 'monthly', or 'alltime' (default: 'alltime')</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "timeframe": "string",
+  "date": "string",
+  "entries": [
+    {
+      "userId": "number",
+      "username": "string",
+      "score": "number",
+      "annotationCount": "number",
+      "upvotesReceived": "number",
+      "rank": "number"
+    }
+  ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-md font-mono mr-2">GET</span>
+                        <span className="font-mono text-sm">/api/external/activity-feed</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Get public activity feed (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Query Parameters</h4>
+                        <table className="w-full text-xs mb-3">
+                          <thead className="bg-neutral-50">
+                            <tr>
+                              <th className="p-2 text-left">Parameter</th>
+                              <th className="p-2 text-left">Type</th>
+                              <th className="p-2 text-left">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">limit</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Number of items to return (default: 20)</td>
+                            </tr>
+                            <tr className="border-t border-neutral-100">
+                              <td className="p-2 font-mono">offset</td>
+                              <td className="p-2">number</td>
+                              <td className="p-2">Number of items to skip (default: 0)</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "activities": [
+    {
+      "id": "number",
+      "userId": "number",
+      "username": "string",
+      "type": "string",
+      "entityId": "number",
+      "entityType": "string",
+      "metadata": "object",
+      "createdAt": "string"
+    }
+  ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+
+                    <div className="border border-neutral-200 rounded-md">
+                      <div className="bg-neutral-50 p-3 border-b border-neutral-200 flex items-center">
+                        <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-md font-mono mr-2">GET</span>
+                        <span className="font-mono text-sm">/api/external/usage</span>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm mb-3">Get API usage statistics (API key auth enabled)</p>
+                        <h4 className="text-xs font-medium mb-1">Response</h4>
+                        <pre className="bg-neutral-50 p-2 rounded-md text-xs font-mono">
+{`{
+  "totalRequests": "number",
+  "requestsToday": "number",
+  "requestsThisWeek": "number",
+  "requestsThisMonth": "number",
+  "tokensUsed": "number"
 }`}
                         </pre>
                       </div>
