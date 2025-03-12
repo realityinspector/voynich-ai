@@ -33,7 +33,7 @@ export function ReferenceSelector({ onSelect, onBlur, inputRef }: ReferenceSelec
   
   // Fetch all symbols (expensive operation, but useful for reference)
   const { data: symbolsData } = useQuery({
-    queryKey: ['/api/symbols/page/all'],  // This will need to be implemented
+    queryKey: ['/api/symbols/page/all'],
     retry: false,
   });
   
