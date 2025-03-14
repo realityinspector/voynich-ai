@@ -516,14 +516,22 @@ print(pages)`}
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Button className="sm:w-auto gap-2">
-                  <Download className="h-4 w-4" />
-                  Download Python Client
-                </Button>
-                <Button variant="outline" className="sm:w-auto gap-2">
-                  <Github className="h-4 w-4" />
-                  View on GitHub
-                </Button>
+                <a href="/docs/voynich_api_client.py" download className="inline-block">
+                  <Button className="sm:w-auto gap-2">
+                    <Download className="h-4 w-4" />
+                    Download Python Client
+                  </Button>
+                </a>
+                <a 
+                  href="https://github.com/realityinspector/voynich-ai" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" className="sm:w-auto gap-2">
+                    <Github className="h-4 w-4" />
+                    View on GitHub
+                  </Button>
+                </a>
               </div>
             </CardContent>
           </Card>

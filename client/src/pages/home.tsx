@@ -41,6 +41,9 @@ export default function Home() {
           <Link href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
             API Docs
           </Link>
+          <Link href="/python-client" className="text-muted-foreground hover:text-foreground transition-colors">
+            Python Client
+          </Link>
           <a
             href="https://github.com/realityinspector/voynich-ai"
             target="_blank"
@@ -582,24 +585,20 @@ fetchPage(42)
                 <Link href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
                   API Docs
                 </Link>
-                <a 
-                  href="/docs/example_api_usage.py" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <Link
+                  href="/python-client"
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
                 >
                   <Key className="h-5 w-5" />
                   <span>Python API Client</span>
-                </a>
-                <a 
-                  href="/docs/API_DOCUMENTATION.md" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                </Link>
+                <Link
+                  href="/api-docs"
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
                 >
                   <ScrollText className="h-5 w-5" />
                   <span>API Reference</span>
-                </a>
+                </Link>
               </div>
               <div className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} Voynich Research Platform. Open Source under MIT License.
