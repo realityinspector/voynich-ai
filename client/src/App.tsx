@@ -16,6 +16,7 @@ import Analysis from "@/pages/analysis";
 import AnalysisResult from "@/pages/analysis-result";
 import Gallery from "@/pages/gallery";
 import ApiDocs from "@/pages/api-docs";
+import PythonClient from "@/pages/python-client";
 import Upload from "@/pages/admin/upload";
 import Settings from "@/pages/admin/settings";
 import Credits from "@/pages/credits";
@@ -45,7 +46,8 @@ function Router() {
           location !== '/' && 
           location !== '/login' && 
           location !== '/register' &&
-          location !== '/api-docs'
+          location !== '/api-docs' &&
+          location !== '/python-client'
         ) {
           toast({
             title: "Authentication required",
@@ -85,6 +87,7 @@ function Router() {
       
       {/* Public API documentation */}
       <Route path="/api-docs" component={ApiDocs} />
+      <Route path="/python-client" component={PythonClient} />
       
       {/* Auth routes - no layout */}
       <Route path="/login" component={Login} />
