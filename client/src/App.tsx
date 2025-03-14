@@ -23,6 +23,7 @@ import Credits from "@/pages/credits";
 
 // Import components
 import AppLayout from "@/components/layout/AppLayout";
+import PublicPageLayout from "@/components/layout/PublicPageLayout";
 import React, { useEffect } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "./hooks/use-toast";
@@ -86,8 +87,16 @@ function Router() {
       </Route>
       
       {/* Public API documentation */}
-      <Route path="/api-docs" component={ApiDocs} />
-      <Route path="/python-client" component={PythonClient} />
+      <Route path="/api-docs">
+        <PublicPageLayout>
+          <ApiDocs />
+        </PublicPageLayout>
+      </Route>
+      <Route path="/python-client">
+        <PublicPageLayout>
+          <PythonClient />
+        </PublicPageLayout>
+      </Route>
       
       {/* Auth routes - no layout */}
       <Route path="/login" component={Login} />
