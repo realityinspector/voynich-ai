@@ -6,6 +6,10 @@ import { z } from "zod";
 // User-related schemas
 export const userRoleEnum = pgEnum('user_role', ['admin', 'user', 'researcher']);
 
+// Blog-related schemas
+export const blogPostStatusEnum = pgEnum('blog_post_status', ['draft', 'published', 'archived']);
+export const blogPostCategoryEnum = pgEnum('blog_post_category', ['research', 'analysis', 'history', 'cryptography', 'language', 'manuscript_features', 'community']);
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -24,6 +28,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   notes: many(notes),
   annotations: many(annotations),
   analysisResults: many(analysisResults),
+  blogPosts: many(blogPosts),
+  blogComments: many(blogComments),
 }));
 
 // Manuscript-related schemas
@@ -49,6 +55,8 @@ export const manuscriptPagesRelations = relations(manuscriptPages, ({ one, many 
   }),
   symbols: many(symbols),
   annotations: many(annotations),
+  blogPosts: many(blogPosts),
+  blogTopicIdeas: many(blogTopicIdeas),
 }));
 
 // Symbol-related schemas
@@ -304,6 +312,140 @@ export const creditTransactionsRelations = relations(creditTransactions, ({ one 
   }),
 }));
 
+// Blog post schemas
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(),
+  featuredImage: text("featured_image"),
+  category: blogPostCategoryEnum("category").notNull(),
+  status: blogPostStatusEnum("status").notNull().default('draft'),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  pageId: integer("page_id").references(() => manuscriptPages.id),
+  symbolId: integer("symbol_id").references(() => symbols.id),
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  promptTemplate: text("prompt_template"),
+  tags: text("tags").array(),
+  viewCount: integer("view_count").default(0).notNull(),
+  shareCount: integer("share_count").default(0).notNull(),
+  upvotes: integer("upvotes").default(0).notNull(),
+  downvotes: integer("downvotes").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  publishedAt: timestamp("published_at"),
+});
+
+export const blogPostsRelations = relations(blogPosts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [blogPosts.userId],
+    references: [users.id],
+  }),
+  page: one(manuscriptPages, {
+    fields: [blogPosts.pageId],
+    references: [manuscriptPages.id],
+  }),
+  symbol: one(symbols, {
+    fields: [blogPosts.symbolId],
+    references: [symbols.id],
+  }),
+  comments: many(blogComments),
+  relatedTopics: many(blogRelatedTopics),
+}));
+
+// Blog comments
+export const blogComments = pgTable("blog_comments", {
+  id: serial("id").primaryKey(),
+  blogPostId: integer("blog_post_id").references(() => blogPosts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const blogCommentsRelations = relations(blogComments, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogComments.blogPostId],
+    references: [blogPosts.id],
+  }),
+  user: one(users, {
+    fields: [blogComments.userId],
+    references: [users.id],
+  }),
+}));
+
+// Blog post voting system
+export const blogPostVotes = pgTable("blog_post_votes", {
+  id: serial("id").primaryKey(),
+  blogPostId: integer("blog_post_id").references(() => blogPosts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  voteType: text("vote_type").notNull(), // 'upvote' or 'downvote'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const blogPostVotesRelations = relations(blogPostVotes, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostVotes.blogPostId],
+    references: [blogPosts.id],
+  }),
+  user: one(users, {
+    fields: [blogPostVotes.userId],
+    references: [users.id],
+  }),
+}));
+
+// Blog topic ideas for auto-generation
+export const blogTopicIdeas = pgTable("blog_topic_ideas", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  category: blogPostCategoryEnum("category").notNull(),
+  description: text("description").notNull(),
+  promptTemplate: text("prompt_template").notNull(),
+  complexity: text("complexity").default('medium').notNull(), // 'easy', 'medium', 'advanced'
+  status: text("status").default('available').notNull(), // 'available', 'generated', 'published'
+  pageId: integer("page_id").references(() => manuscriptPages.id),
+  symbolId: integer("symbol_id").references(() => symbols.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  generatedPostId: integer("generated_post_id").references(() => blogPosts.id),
+});
+
+export const blogTopicIdeasRelations = relations(blogTopicIdeas, ({ one }) => ({
+  page: one(manuscriptPages, {
+    fields: [blogTopicIdeas.pageId],
+    references: [manuscriptPages.id],
+  }),
+  symbol: one(symbols, {
+    fields: [blogTopicIdeas.symbolId],
+    references: [symbols.id],
+  }),
+  generatedPost: one(blogPosts, {
+    fields: [blogTopicIdeas.generatedPostId], 
+    references: [blogPosts.id],
+  }),
+}));
+
+// Related topics for blog posts
+export const blogRelatedTopics = pgTable("blog_related_topics", {
+  id: serial("id").primaryKey(),
+  blogPostId: integer("blog_post_id").references(() => blogPosts.id).notNull(),
+  relatedTopicId: integer("related_topic_id").references(() => blogPosts.id).notNull(),
+  relevanceScore: integer("relevance_score").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const blogRelatedTopicsRelations = relations(blogRelatedTopics, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogRelatedTopics.blogPostId],
+    references: [blogPosts.id],
+  }),
+  relatedPost: one(blogPosts, {
+    fields: [blogRelatedTopics.relatedTopicId],
+    references: [blogPosts.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -388,3 +530,53 @@ export type ExtractionJob = typeof extractionJobs.$inferSelect;
 export type InsertExtractionJob = z.infer<typeof insertExtractionJobSchema>;
 
 export type CreditTransaction = typeof creditTransactions.$inferSelect;
+
+// Blog insert schemas
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+  viewCount: true,
+  shareCount: true,
+  upvotes: true,
+  downvotes: true,
+});
+
+export const insertBlogCommentSchema = createInsertSchema(blogComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBlogTopicIdeaSchema = createInsertSchema(blogTopicIdeas).omit({
+  id: true,
+  createdAt: true,
+  generatedPostId: true,
+});
+
+export const insertBlogPostVoteSchema = createInsertSchema(blogPostVotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBlogRelatedTopicSchema = createInsertSchema(blogRelatedTopics).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Blog types
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+
+export type BlogComment = typeof blogComments.$inferSelect;
+export type InsertBlogComment = z.infer<typeof insertBlogCommentSchema>;
+
+export type BlogPostVote = typeof blogPostVotes.$inferSelect;
+export type InsertBlogPostVote = z.infer<typeof insertBlogPostVoteSchema>;
+
+export type BlogTopicIdea = typeof blogTopicIdeas.$inferSelect;
+export type InsertBlogTopicIdea = z.infer<typeof insertBlogTopicIdeaSchema>;
+
+export type BlogRelatedTopic = typeof blogRelatedTopics.$inferSelect;
+export type InsertBlogRelatedTopic = z.infer<typeof insertBlogRelatedTopicSchema>;
