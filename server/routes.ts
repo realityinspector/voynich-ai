@@ -11,6 +11,7 @@ import { UploadedFileMetadata } from "@shared/types";
 import aiRouter from "./api/ai";
 import paymentsRouter from "./api/payments";
 import externalRouter from "./api/external";
+import blogRouter from "./api/blog";
 
 // Setup multer for file uploads
 const upload = multer({
@@ -58,6 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/ai', aiRouter);
   app.use('/api/payments', paymentsRouter);
   app.use('/api/external', externalRouter);
+  app.use('/api/blog', blogRouter);
   
   // Dashboard Statistics
   app.get('/api/stats/dashboard', isAuthenticated, async (req, res) => {

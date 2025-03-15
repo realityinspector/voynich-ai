@@ -12,6 +12,11 @@ import {
   creditTransactions,
   leaderboards,
   activityFeed,
+  blogPosts,
+  blogComments,
+  blogPostVotes,
+  blogTopicIdeas,
+  blogRelatedTopics,
   type User, 
   type InsertUser, 
   type ManuscriptPage,
@@ -29,7 +34,17 @@ import {
   type InsertApiKey,
   type ExtractionJob,
   type InsertExtractionJob,
-  type CreditTransaction
+  type CreditTransaction,
+  type BlogPost,
+  type InsertBlogPost,
+  type BlogComment,
+  type InsertBlogComment,
+  type BlogPostVote,
+  type InsertBlogPostVote,
+  type BlogTopicIdea,
+  type InsertBlogTopicIdea,
+  type BlogRelatedTopic,
+  type InsertBlogRelatedTopic
 } from "@shared/schema";
 import { eq, and, desc, asc, between, gte, lte, like, isNull, not, sql as sqlExpr, count } from "drizzle-orm";
 import { db } from "./db";
@@ -115,6 +130,40 @@ export interface IStorage {
   createActivityFeedEntry(data: { userId: number, type: string, entityId: number, entityType: string, isPublic?: boolean, metadata?: any }): Promise<any>;
   getPublicActivityFeed(limit?: number, offset?: number): Promise<any[]>;
   getUserActivityFeed(userId: number, limit?: number, offset?: number): Promise<any[]>;
+  
+  // Blog post operations
+  getBlogPost(id: number): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  listBlogPosts(options?: { category?: string, userId?: number, status?: string, tag?: string, pageId?: number, symbolId?: number, offset?: number, limit?: number }): Promise<BlogPost[]>;
+  createBlogPost(blogPost: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: number, data: Partial<BlogPost>): Promise<BlogPost>;
+  deleteBlogPost(id: number): Promise<void>;
+  publishBlogPost(id: number): Promise<BlogPost>;
+  incrementBlogPostView(id: number): Promise<void>;
+  incrementBlogPostShare(id: number): Promise<void>;
+  
+  // Blog comment operations
+  getBlogComment(id: number): Promise<BlogComment | undefined>;
+  getBlogCommentsByPost(blogPostId: number): Promise<BlogComment[]>;
+  createBlogComment(blogComment: InsertBlogComment): Promise<BlogComment>;
+  updateBlogComment(id: number, data: Partial<BlogComment>): Promise<BlogComment>;
+  deleteBlogComment(id: number): Promise<void>;
+  
+  // Blog post voting operations
+  createBlogPostVote(data: { blogPostId: number, userId: number, voteType: string }): Promise<any>;
+  getBlogPostVote(blogPostId: number, userId: number): Promise<any | undefined>;
+  
+  // Blog topic idea operations
+  getBlogTopicIdea(id: number): Promise<BlogTopicIdea | undefined>;
+  listBlogTopicIdeas(options?: { category?: string, status?: string, complexity?: string, pageId?: number, symbolId?: number, offset?: number, limit?: number }): Promise<BlogTopicIdea[]>;
+  createBlogTopicIdea(blogTopicIdea: InsertBlogTopicIdea): Promise<BlogTopicIdea>;
+  updateBlogTopicIdea(id: number, data: Partial<BlogTopicIdea>): Promise<BlogTopicIdea>;
+  deleteBlogTopicIdea(id: number): Promise<void>;
+  
+  // Blog related topics operations
+  createBlogRelatedTopic(relatedTopic: InsertBlogRelatedTopic): Promise<BlogRelatedTopic>;
+  getRelatedBlogPosts(blogPostId: number, limit?: number): Promise<BlogPost[]>;
+  autoGenerateBlogPostFromIdea(topicIdeaId: number, userId: number): Promise<BlogPost>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -751,7 +800,392 @@ export class DatabaseStorage implements IStorage {
       .offset(offset);
   }
 
-  // Helper methods
+  // Blog post operations
+  async getBlogPost(id: number): Promise<BlogPost | undefined> {
+    const [blogPost] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return blogPost;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [blogPost] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return blogPost;
+  }
+
+  async listBlogPosts(options: { 
+    category?: string, 
+    userId?: number, 
+    status?: string, 
+    tag?: string, 
+    pageId?: number, 
+    symbolId?: number, 
+    offset?: number, 
+    limit?: number 
+  } = {}): Promise<BlogPost[]> {
+    const { 
+      category, 
+      userId, 
+      status = 'published', 
+      tag, 
+      pageId, 
+      symbolId, 
+      offset = 0, 
+      limit = 20 
+    } = options;
+    
+    // Start building the query
+    let query = db.select().from(blogPosts);
+    
+    // Add filters
+    const filters = [];
+    
+    if (category) {
+      filters.push(eq(blogPosts.category, category));
+    }
+    
+    if (userId) {
+      filters.push(eq(blogPosts.userId, userId));
+    }
+    
+    if (status) {
+      filters.push(eq(blogPosts.status, status));
+    }
+    
+    if (pageId) {
+      filters.push(eq(blogPosts.pageId, pageId));
+    }
+    
+    if (symbolId) {
+      filters.push(eq(blogPosts.symbolId, symbolId));
+    }
+    
+    // Combine filters
+    if (filters.length > 0) {
+      query = query.where(and(...filters));
+    }
+    
+    // Add tag filter separately as it requires array handling
+    if (tag) {
+      query = query.where(sqlExpr`${blogPosts.tags} @> ARRAY[${tag}]::text[]`);
+    }
+    
+    // Add order, limit, offset
+    const results = await query
+      .orderBy(desc(blogPosts.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    return results;
+  }
+
+  async createBlogPost(blogPost: InsertBlogPost): Promise<BlogPost> {
+    const [newBlogPost] = await db.insert(blogPosts).values(blogPost).returning();
+    return newBlogPost;
+  }
+
+  async updateBlogPost(id: number, data: Partial<BlogPost>): Promise<BlogPost> {
+    const [updatedBlogPost] = await db
+      .update(blogPosts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return updatedBlogPost;
+  }
+
+  async deleteBlogPost(id: number): Promise<void> {
+    // First delete all comments associated with this post
+    await db.delete(blogComments).where(eq(blogComments.blogPostId, id));
+    
+    // Delete all votes
+    await db.delete(blogPostVotes).where(eq(blogPostVotes.blogPostId, id));
+    
+    // Delete related topics
+    await db.delete(blogRelatedTopics).where(eq(blogRelatedTopics.blogPostId, id));
+    await db.delete(blogRelatedTopics).where(eq(blogRelatedTopics.relatedTopicId, id));
+    
+    // Delete the post
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+  }
+
+  async publishBlogPost(id: number): Promise<BlogPost> {
+    const [publishedPost] = await db
+      .update(blogPosts)
+      .set({ 
+        status: 'published', 
+        publishedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return publishedPost;
+  }
+
+  async incrementBlogPostView(id: number): Promise<void> {
+    await db
+      .update(blogPosts)
+      .set({ 
+        viewCount: sqlExpr`${blogPosts.viewCount} + 1` 
+      })
+      .where(eq(blogPosts.id, id));
+  }
+
+  async incrementBlogPostShare(id: number): Promise<void> {
+    await db
+      .update(blogPosts)
+      .set({ 
+        shareCount: sqlExpr`${blogPosts.shareCount} + 1` 
+      })
+      .where(eq(blogPosts.id, id));
+  }
+
+  // Blog comment operations
+  async getBlogComment(id: number): Promise<BlogComment | undefined> {
+    const [comment] = await db.select().from(blogComments).where(eq(blogComments.id, id));
+    return comment;
+  }
+
+  async getBlogCommentsByPost(blogPostId: number): Promise<BlogComment[]> {
+    return await db
+      .select()
+      .from(blogComments)
+      .where(eq(blogComments.blogPostId, blogPostId))
+      .orderBy(asc(blogComments.createdAt));
+  }
+
+  async createBlogComment(blogComment: InsertBlogComment): Promise<BlogComment> {
+    const [newComment] = await db.insert(blogComments).values(blogComment).returning();
+    return newComment;
+  }
+
+  async updateBlogComment(id: number, data: Partial<BlogComment>): Promise<BlogComment> {
+    const [updatedComment] = await db
+      .update(blogComments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(blogComments.id, id))
+      .returning();
+    return updatedComment;
+  }
+
+  async deleteBlogComment(id: number): Promise<void> {
+    await db.delete(blogComments).where(eq(blogComments.id, id));
+  }
+
+  // Blog post voting operations
+  async createBlogPostVote(data: { blogPostId: number, userId: number, voteType: string }): Promise<any> {
+    const { blogPostId, userId, voteType } = data;
+    
+    // Check if user already voted on this post
+    const existingVote = await this.getBlogPostVote(blogPostId, userId);
+    
+    if (existingVote) {
+      // If vote type is the same, do nothing
+      if (existingVote.voteType === voteType) {
+        return existingVote;
+      }
+      
+      // If vote type is different, delete existing vote and create new one
+      await db.delete(blogPostVotes)
+        .where(and(
+          eq(blogPostVotes.blogPostId, blogPostId),
+          eq(blogPostVotes.userId, userId)
+        ));
+    }
+    
+    // Create the vote
+    const [vote] = await db.insert(blogPostVotes)
+      .values({
+        blogPostId,
+        userId,
+        voteType
+      })
+      .returning();
+    
+    // Update the blog post's vote counts
+    const voteIncrement = voteType === 'upvote' ? 1 : 0;
+    const downvoteIncrement = voteType === 'downvote' ? 1 : 0;
+    
+    await db.update(blogPosts)
+      .set({ 
+        upvotes: sqlExpr`${blogPosts.upvotes} + ${voteIncrement}`,
+        downvotes: sqlExpr`${blogPosts.downvotes} + ${downvoteIncrement}`
+      })
+      .where(eq(blogPosts.id, blogPostId));
+    
+    return vote;
+  }
+  
+  async getBlogPostVote(blogPostId: number, userId: number): Promise<any | undefined> {
+    const [vote] = await db.select()
+      .from(blogPostVotes)
+      .where(and(
+        eq(blogPostVotes.blogPostId, blogPostId),
+        eq(blogPostVotes.userId, userId)
+      ));
+    return vote;
+  }
+
+  // Blog topic idea operations
+  async getBlogTopicIdea(id: number): Promise<BlogTopicIdea | undefined> {
+    const [topicIdea] = await db.select().from(blogTopicIdeas).where(eq(blogTopicIdeas.id, id));
+    return topicIdea;
+  }
+
+  async listBlogTopicIdeas(options: { 
+    category?: string, 
+    status?: string, 
+    complexity?: string, 
+    pageId?: number, 
+    symbolId?: number, 
+    offset?: number, 
+    limit?: number 
+  } = {}): Promise<BlogTopicIdea[]> {
+    const { 
+      category, 
+      status = 'available', 
+      complexity,
+      pageId, 
+      symbolId, 
+      offset = 0, 
+      limit = 20 
+    } = options;
+    
+    // Start building the query
+    let query = db.select().from(blogTopicIdeas);
+    
+    // Add filters
+    const filters = [];
+    
+    if (category) {
+      filters.push(eq(blogTopicIdeas.category, category));
+    }
+    
+    if (status) {
+      filters.push(eq(blogTopicIdeas.status, status));
+    }
+    
+    if (complexity) {
+      filters.push(eq(blogTopicIdeas.complexity, complexity));
+    }
+    
+    if (pageId) {
+      filters.push(eq(blogTopicIdeas.pageId, pageId));
+    }
+    
+    if (symbolId) {
+      filters.push(eq(blogTopicIdeas.symbolId, symbolId));
+    }
+    
+    // Combine filters
+    if (filters.length > 0) {
+      query = query.where(and(...filters));
+    }
+    
+    // Add order, limit, offset
+    const results = await query
+      .orderBy(asc(blogTopicIdeas.title))
+      .limit(limit)
+      .offset(offset);
+    
+    return results;
+  }
+
+  async createBlogTopicIdea(blogTopicIdea: InsertBlogTopicIdea): Promise<BlogTopicIdea> {
+    const [newTopicIdea] = await db.insert(blogTopicIdeas).values(blogTopicIdea).returning();
+    return newTopicIdea;
+  }
+
+  async updateBlogTopicIdea(id: number, data: Partial<BlogTopicIdea>): Promise<BlogTopicIdea> {
+    const [updatedTopicIdea] = await db
+      .update(blogTopicIdeas)
+      .set(data)
+      .where(eq(blogTopicIdeas.id, id))
+      .returning();
+    return updatedTopicIdea;
+  }
+
+  async deleteBlogTopicIdea(id: number): Promise<void> {
+    await db.delete(blogTopicIdeas).where(eq(blogTopicIdeas.id, id));
+  }
+
+  // Blog related topics operations
+  async createBlogRelatedTopic(relatedTopic: InsertBlogRelatedTopic): Promise<BlogRelatedTopic> {
+    const [newRelatedTopic] = await db.insert(blogRelatedTopics).values(relatedTopic).returning();
+    return newRelatedTopic;
+  }
+
+  async getRelatedBlogPosts(blogPostId: number, limit: number = 5): Promise<BlogPost[]> {
+    // Get related topics for the given blog post
+    const relatedTopics = await db.select()
+      .from(blogRelatedTopics)
+      .where(eq(blogRelatedTopics.blogPostId, blogPostId))
+      .orderBy(desc(blogRelatedTopics.relevanceScore))
+      .limit(limit);
+    
+    // If no related topics, return empty array
+    if (relatedTopics.length === 0) {
+      return [];
+    }
+    
+    // Extract the related post IDs
+    const relatedPostIds = relatedTopics.map(rt => rt.relatedTopicId);
+    
+    // Get the related posts
+    return await db.select()
+      .from(blogPosts)
+      .where(
+        and(
+          sqlExpr`${blogPosts.id} = ANY(${relatedPostIds})`,
+          eq(blogPosts.status, 'published')
+        )
+      );
+  }
+
+  // Method to auto-generate a blog post from a topic idea using AI
+  async autoGenerateBlogPostFromIdea(topicIdeaId: number, userId: number): Promise<BlogPost> {
+    // Get the topic idea
+    const topicIdea = await this.getBlogTopicIdea(topicIdeaId);
+    if (!topicIdea) {
+      throw new Error('Topic idea not found');
+    }
+
+    // Get the AI prompt template from the topic idea
+    const prompt = topicIdea.promptTemplate;
+    
+    // We'll implement the LLM call in the API route to separate concerns
+    // Here we just prepare the blog post structure with placeholders
+    
+    // Generate a slug from the title
+    const slug = topicIdea.title
+      .toLowerCase()
+      .replace(/[^\w\s]/gi, '')  // Remove special chars
+      .replace(/\s+/g, '-')      // Replace spaces with hyphens
+      .substring(0, 100);        // Limit length
+    
+    // Create a draft blog post
+    const blogPost = await this.createBlogPost({
+      title: topicIdea.title,
+      slug: `${slug}-${Date.now().toString().substring(9)}`, // Add timestamp for uniqueness
+      excerpt: topicIdea.description,
+      content: "Content will be generated by AI...",
+      category: topicIdea.category,
+      status: 'draft',
+      userId: userId,
+      pageId: topicIdea.pageId,
+      symbolId: topicIdea.symbolId,
+      metaTitle: topicIdea.title,
+      metaDescription: topicIdea.description,
+      promptTemplate: topicIdea.promptTemplate,
+      tags: []
+    });
+    
+    // Update the topic idea to link to the generated post
+    await this.updateBlogTopicIdea(topicIdeaId, { 
+      status: 'generated',
+      generatedPostId: blogPost.id
+    });
+    
+    return blogPost;
+  }
+
   private generateShareToken(): string {
     const randomString = randomBytes(16).toString('hex');
     return createHash('sha256').update(randomString).digest('hex').substring(0, 32);
