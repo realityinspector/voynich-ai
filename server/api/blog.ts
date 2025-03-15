@@ -381,69 +381,22 @@ router.post('/generate', isAuthenticated, async (req: Request, res: Response) =>
       return res.status(400).json({ message: 'Topic ID is required' });
     }
     
-    const topic = await storage.getBlogTopicIdea(parseInt(topicId));
+    // Parse the topic ID to an integer
+    const parsedTopicId = parseInt(topicId);
     
-    if (!topic) {
-      return res.status(404).json({ message: 'Topic idea not found' });
-    }
+    // Use the storage method that handles all the blog post generation logic
+    // This will create a well-structured post with tags, excerpts, etc.
+    const post = await storage.autoGenerateBlogPostFromIdea(parsedTopicId, req.user.id);
     
-    // For now, since we don't have the external LLM integration completed,
-    // let's create a sample blog post with basic content based on the topic
-    const title = topic.title;
-    const promptTemplate = topic.promptTemplate;
-    
-    // Generate a slug from the title
-    const blogSlug = slug(title, { lower: true });
-    
-    // Create a draft blog post
-    const post = await storage.createBlogPost({
-      title,
-      slug: blogSlug,
-      content: `<h1>${title}</h1>
-<p><em>This is an AI-generated blog post based on the topic: "${title}"</em></p>
-<p>The topic prompt was: "${promptTemplate}"</p>
-<h2>Introduction</h2>
-<p>The Voynich Manuscript has fascinated scholars, cryptographers, and enthusiasts for centuries. This enigmatic document, with its unknown script and puzzling illustrations, continues to be one of the world's most mysterious texts.</p>
-<h2>Main Content</h2>
-<p>The manuscript's unusual features include:</p>
-<ul>
-  <li>An undeciphered script that doesn't match any known writing system</li>
-  <li>Botanical illustrations that don't clearly correspond to real plants</li>
-  <li>Astronomical diagrams with peculiar circular patterns</li>
-  <li>Apparent "recipes" or formulations in certain sections</li>
-</ul>
-<p>Researchers have applied numerous techniques to understand this document, from traditional cryptographic approaches to modern computational methods. However, the manuscript has resisted all attempts at decipherment so far.</p>
-<h2>Analysis</h2>
-<p>What makes this topic particularly interesting is the intersection of various disciplines: linguistics, botany, astronomy, history, and cryptography. The manuscript doesn't fit neatly into any single category of medieval documents.</p>
-<p>Some theories suggest it might be:</p>
-<ol>
-  <li>An elaborate hoax</li>
-  <li>A constructed artificial language</li>
-  <li>An encrypted text in a natural language</li>
-  <li>A phonetic transcription of an unknown language</li>
-</ol>
-<h2>Conclusion</h2>
-<p>The mystery of the Voynich Manuscript endures precisely because it challenges our understanding of medieval knowledge and communication. As research continues with new technologies and approaches, we may yet unlock its secrets.</p>
-<p><em>This is a sample automatically generated post. The content should be reviewed and edited by a human before publishing.</em></p>`,
-      excerpt: `An exploration of ${title.toLowerCase()} showing how the unique features of the Voynich Manuscript continue to puzzle researchers.`,
-      category: topic.category,
-      tags: [topic.category, "voynich", "manuscript", "research"],
-      userId: req.user.id,
-      status: 'draft',
-      metaTitle: title,
-      metaDescription: `Learn about ${title.toLowerCase()} in this fascinating exploration of the Voynich Manuscript's mysteries.`
-    });
-    
-    // Update the topic to mark it as used
-    await storage.updateBlogTopicIdea(topic.id, {
-      status: 'used',
-      generatedPostId: post.id
-    });
-    
+    // Return the generated post
     res.json({ post });
   } catch (error) {
     console.error('Error generating blog post:', error);
-    res.status(500).json({ message: 'Error generating blog post' });
+    if (error instanceof Error) {
+      res.status(500).json({ message: `Error generating blog post: ${error.message}` });
+    } else {
+      res.status(500).json({ message: 'Error generating blog post' });
+    }
   }
 });
 

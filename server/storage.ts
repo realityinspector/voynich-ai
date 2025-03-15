@@ -1200,7 +1200,10 @@ export class DatabaseStorage implements IStorage {
     const commonTags = ["voynich", "manuscript", "research"];
     const categoryTag = topicIdea.category;
     const complexityTag = topicIdea.complexity || "research";
-    const tags = [...new Set([categoryTag, complexityTag, ...commonTags])];
+    
+    // Create array of unique tags without using Set to avoid TypeScript issues
+    const allTags = [categoryTag, complexityTag, ...commonTags];
+    const tags = allTags.filter((tag, index) => allTags.indexOf(tag) === index);
     
     // Create a draft blog post
     const blogPost = await this.createBlogPost({
