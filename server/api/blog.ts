@@ -1,80 +1,87 @@
-import { Request, Response, Router } from 'express';
-import { isAuthenticated, isAdmin } from '../auth';
+import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
-import { nanoid } from 'nanoid';
+import { isAuthenticated, isAdmin } from '../auth';
+import { z } from 'zod';
 import slug from 'slug';
 import multer from 'multer';
-import fs from 'fs/promises';
 import path from 'path';
-import { blogPostStatusEnum, blogPostCategoryEnum } from '@shared/schema';
+import fs from 'fs';
+import { insertBlogPostSchema, insertBlogCommentSchema, insertBlogTopicIdeaSchema } from '../../shared/schema';
 
 const router = Router();
 
-// Configure multer for image uploads
+// Configure file upload middleware
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const uploadDir = path.join(process.cwd(), 'uploads', 'blog');
+      const uploadDir = path.join(process.cwd(), 'public', 'blog-images');
+      
       // Create directory if it doesn't exist
-      fs.mkdir(uploadDir, { recursive: true })
-        .then(() => cb(null, uploadDir))
-        .catch(err => cb(err, uploadDir));
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       const ext = path.extname(file.originalname);
-      cb(null, `blog-${uniqueSuffix}${ext}`);
-    }
+      cb(null, 'blog-' + uniqueSuffix + ext);
+    },
   }),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|svg|webp/;
+    // Accept only image files
+    const filetypes = /jpeg|jpg|png|gif|svg/;
     const mimetype = filetypes.test(file.mimetype);
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     
     if (mimetype && extname) {
       return cb(null, true);
     }
-    cb(new Error("Only images are allowed"));
-  }
+    
+    cb(new Error('Only image files are allowed!'));
+  },
 });
 
-// GET /api/blog/posts - Get all published blog posts with pagination and filtering
+// Get list of blog posts with pagination
 router.get('/posts', async (req: Request, res: Response) => {
   try {
-    const category = typeof req.query.category === 'string' ? req.query.category : undefined;
-    const tag = typeof req.query.tag === 'string' ? req.query.tag : undefined;
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+    const category = req.query.category as string;
+    const tag = req.query.tag as string;
+    const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
     
-    // Get only published posts for public endpoint
-    const posts = await storage.listBlogPosts({
-      category, 
-      tag,
-      status: 'published',
-      offset,
-      limit
-    });
-    
-    // Get the total count for pagination
-    const allPosts = await storage.listBlogPosts({
+    const options = {
       category,
       tag,
-      status: 'published'
-    });
+      userId,
+      status: 'published', // Only show published posts by default
+      offset,
+      limit
+    };
     
-    const totalCount = allPosts.length;
+    // If user is requesting their own posts, include drafts
+    if (req.user && userId === req.user.id) {
+      options.status = undefined;
+    }
+    
+    const posts = await storage.listBlogPosts(options);
+    
+    // Count total for pagination
+    const totalPosts = posts.length;
+    const totalPages = Math.ceil(totalPosts / limit);
     
     res.json({
       posts,
       pagination: {
-        offset,
-        limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-        currentPage: Math.floor(offset / limit) + 1
+        currentPage: page,
+        totalPages,
+        totalItems: totalPosts
       }
     });
   } catch (error) {
@@ -83,54 +90,35 @@ router.get('/posts', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/blog/posts/:slug - Get a single blog post by slug
+// Get a blog post by slug
 router.get('/posts/:slug', async (req: Request, res: Response) => {
   try {
-    const post = await storage.getBlogPostBySlug(req.params.slug);
+    const { slug } = req.params;
+    const post = await storage.getBlogPostBySlug(slug);
     
     if (!post) {
       return res.status(404).json({ message: 'Blog post not found' });
     }
     
+    // Check if the post is not published and the user is not the author or admin
+    if (post.status !== 'published' && 
+        (!req.user || (req.user.id !== post.userId && req.user.role !== 'admin'))) {
+      return res.status(403).json({ message: 'You do not have permission to view this post' });
+    }
+    
     // Increment view count
     await storage.incrementBlogPostView(post.id);
     
-    // Get related posts
-    const relatedPosts = await storage.getRelatedBlogPosts(post.id, 3);
-    
-    // Get comments
+    // Get comments for the post
     const comments = await storage.getBlogCommentsByPost(post.id);
     
-    // Get page and symbol info if they exist
-    let pageInfo = null;
-    let symbolInfo = null;
-    
-    if (post.pageId) {
-      pageInfo = await storage.getManuscriptPage(post.pageId);
-    }
-    
-    if (post.symbolId) {
-      symbolInfo = await storage.getSymbol(post.symbolId);
-    }
-    
-    // Get author info
-    const author = await storage.getUser(post.userId);
-    const authorData = author ? {
-      id: author.id,
-      username: author.username,
-      institution: author.institution,
-      bio: author.bio
-    } : null;
+    // Get related posts
+    const relatedPosts = await storage.getRelatedBlogPosts(post.id);
     
     res.json({
-      post: {
-        ...post,
-        author: authorData
-      },
-      relatedPosts,
+      post,
       comments,
-      pageInfo,
-      symbolInfo
+      relatedPosts
     });
   } catch (error) {
     console.error('Error fetching blog post:', error);
@@ -138,154 +126,78 @@ router.get('/posts/:slug', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/blog/posts - Create a new blog post (authenticated)
+// Create a new blog post
 router.post('/posts', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const { 
-      title, 
-      excerpt, 
-      content, 
-      category, 
-      status = 'draft',
-      pageId,
-      symbolId,
-      metaTitle,
-      metaDescription,
-      tags = []
-    } = req.body;
-    
-    // Validate required fields
-    if (!title || !excerpt || !content || !category) {
-      return res.status(400).json({ 
-        message: 'Missing required fields: title, excerpt, content, and category are required' 
-      });
-    }
-    
-    // Generate slug from title
-    let slugText = slug(title);
-    
-    // Check for duplicate slug
-    const existingPost = await storage.getBlogPostBySlug(slugText);
-    if (existingPost) {
-      // Add a unique suffix
-      slugText = `${slugText}-${nanoid(6)}`;
-    }
-    
-    const newPost = await storage.createBlogPost({
-      title,
-      slug: slugText,
-      excerpt,
-      content,
-      category,
-      status,
-      userId: req.user!.id,
-      pageId,
-      symbolId,
-      metaTitle: metaTitle || title,
-      metaDescription: metaDescription || excerpt,
-      tags,
-      promptTemplate: req.body.promptTemplate
+    const postData = insertBlogPostSchema.parse({
+      ...req.body,
+      userId: req.user.id,
+      status: req.body.status || 'draft'
     });
     
-    // If status is published, set publishedAt
-    if (status === 'published') {
-      await storage.publishBlogPost(newPost.id);
+    // Generate slug from title if not provided
+    if (!postData.slug) {
+      postData.slug = slug(postData.title, { lower: true });
     }
     
-    res.status(201).json({ post: newPost });
+    const post = await storage.createBlogPost(postData);
+    
+    res.status(201).json({ post });
   } catch (error) {
     console.error('Error creating blog post:', error);
-    res.status(500).json({ message: 'Error creating blog post' });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: 'Invalid post data', errors: error.errors });
+    } else {
+      res.status(500).json({ message: 'Error creating blog post' });
+    }
   }
 });
 
-// PUT /api/blog/posts/:id - Update a blog post (authenticated)
+// Update an existing blog post
 router.put('/posts/:id', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
-    const existingPost = await storage.getBlogPost(postId);
+    const id = parseInt(req.params.id);
+    const post = await storage.getBlogPost(id);
     
-    if (!existingPost) {
+    if (!post) {
       return res.status(404).json({ message: 'Blog post not found' });
     }
     
-    // Check if user is the author or admin
-    if (existingPost.userId !== req.user!.id && req.user!.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to update this post' });
+    // Only allow the author or admin to update
+    if (post.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to update this post' });
     }
     
-    const { 
-      title, 
-      excerpt, 
-      content, 
-      category,
-      status,
-      pageId,
-      symbolId,
-      metaTitle,
-      metaDescription,
-      tags,
-      promptTemplate
-    } = req.body;
-    
-    // If title was changed, update slug only if the post is still a draft
-    let slugText = existingPost.slug;
-    if (title && title !== existingPost.title && existingPost.status === 'draft') {
-      slugText = slug(title);
-      
-      // Check for duplicate slug
-      const duplicatePost = await storage.getBlogPostBySlug(slugText);
-      if (duplicatePost && duplicatePost.id !== postId) {
-        // Add a unique suffix
-        slugText = `${slugText}-${nanoid(6)}`;
-      }
-    }
-    
-    const updateData: any = {};
-    
-    if (title) updateData.title = title;
-    if (slugText !== existingPost.slug) updateData.slug = slugText;
-    if (excerpt) updateData.excerpt = excerpt;
-    if (content) updateData.content = content;
-    if (category) updateData.category = category;
-    if (status) updateData.status = status;
-    if (pageId !== undefined) updateData.pageId = pageId;
-    if (symbolId !== undefined) updateData.symbolId = symbolId;
-    if (metaTitle) updateData.metaTitle = metaTitle;
-    if (metaDescription) updateData.metaDescription = metaDescription;
-    if (tags) updateData.tags = tags;
-    if (promptTemplate) updateData.promptTemplate = promptTemplate;
-    
-    const updatedPost = await storage.updateBlogPost(postId, updateData);
-    
-    // If status changed to published, update publishedAt
-    if (status === 'published' && existingPost.status !== 'published') {
-      await storage.publishBlogPost(postId);
-    }
+    // Update the post
+    const updatedPost = await storage.updateBlogPost(id, req.body);
     
     res.json({ post: updatedPost });
   } catch (error) {
     console.error('Error updating blog post:', error);
-    res.status(500).json({ message: 'Error updating blog post' });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: 'Invalid post data', errors: error.errors });
+    } else {
+      res.status(500).json({ message: 'Error updating blog post' });
+    }
   }
 });
 
-// DELETE /api/blog/posts/:id - Delete a blog post (authenticated)
+// Delete a blog post
 router.delete('/posts/:id', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
-    const existingPost = await storage.getBlogPost(postId);
+    const id = parseInt(req.params.id);
+    const post = await storage.getBlogPost(id);
     
-    if (!existingPost) {
+    if (!post) {
       return res.status(404).json({ message: 'Blog post not found' });
     }
     
-    // Check if user is the author or admin
-    if (existingPost.userId !== req.user!.id && req.user!.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to delete this post' });
+    // Only allow the author or admin to delete
+    if (post.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to delete this post' });
     }
     
-    await storage.deleteBlogPost(postId);
+    await storage.deleteBlogPost(id);
     
     res.json({ message: 'Blog post deleted successfully' });
   } catch (error) {
@@ -294,22 +206,22 @@ router.delete('/posts/:id', isAuthenticated, async (req: Request, res: Response)
   }
 });
 
-// POST /api/blog/posts/:id/publish - Publish a blog post (authenticated)
+// Publish a blog post
 router.post('/posts/:id/publish', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
-    const existingPost = await storage.getBlogPost(postId);
+    const id = parseInt(req.params.id);
+    const post = await storage.getBlogPost(id);
     
-    if (!existingPost) {
+    if (!post) {
       return res.status(404).json({ message: 'Blog post not found' });
     }
     
-    // Check if user is the author or admin
-    if (existingPost.userId !== req.user!.id && req.user!.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to publish this post' });
+    // Only allow the author or admin to publish
+    if (post.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to publish this post' });
     }
     
-    const publishedPost = await storage.publishBlogPost(postId);
+    const publishedPost = await storage.publishBlogPost(id);
     
     res.json({ post: publishedPost });
   } catch (error) {
@@ -318,173 +230,149 @@ router.post('/posts/:id/publish', isAuthenticated, async (req: Request, res: Res
   }
 });
 
-// POST /api/blog/posts/:id/share - Record a share (anyone)
+// Record a share action
 router.post('/posts/:id/share', async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
-    const existingPost = await storage.getBlogPost(postId);
+    const id = parseInt(req.params.id);
     
-    if (!existingPost) {
-      return res.status(404).json({ message: 'Blog post not found' });
-    }
+    await storage.incrementBlogPostShare(id);
     
-    await storage.incrementBlogPostShare(postId);
-    
-    res.json({ success: true });
+    res.json({ message: 'Share recorded successfully' });
   } catch (error) {
-    console.error('Error recording blog post share:', error);
-    res.status(500).json({ message: 'Error recording blog post share' });
+    console.error('Error recording share:', error);
+    res.status(500).json({ message: 'Error recording share' });
   }
 });
 
-// POST /api/blog/posts/:id/vote - Vote on a blog post (authenticated)
+// Vote on a blog post
 router.post('/posts/:id/vote', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
     const { voteType } = req.body;
     
-    if (!voteType || (voteType !== 'upvote' && voteType !== 'downvote')) {
+    if (voteType !== 'upvote' && voteType !== 'downvote') {
       return res.status(400).json({ message: 'Invalid vote type' });
     }
     
-    const existingPost = await storage.getBlogPost(postId);
+    // Check if user has already voted
+    const existingVote = await storage.getBlogPostVote(id, req.user.id);
     
-    if (!existingPost) {
-      return res.status(404).json({ message: 'Blog post not found' });
+    if (existingVote && existingVote.voteType === voteType) {
+      return res.status(400).json({ message: 'You have already voted this way' });
     }
     
-    // Create the vote
+    // Create or update vote
     await storage.createBlogPostVote({
-      blogPostId: postId,
-      userId: req.user!.id,
+      blogPostId: id,
+      userId: req.user.id,
       voteType
     });
     
     // Get updated post
-    const updatedPost = await storage.getBlogPost(postId);
+    const post = await storage.getBlogPost(id);
     
-    res.json({ post: updatedPost });
+    res.json({ post });
   } catch (error) {
-    console.error('Error voting on blog post:', error);
-    res.status(500).json({ message: 'Error voting on blog post' });
+    console.error('Error recording vote:', error);
+    res.status(500).json({ message: 'Error recording vote' });
   }
 });
 
-// POST /api/blog/posts/:id/comments - Add a comment to a blog post (authenticated)
+// Add a comment to a blog post
 router.post('/posts/:id/comments', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
+    const blogPostId = parseInt(req.params.id);
     const { content } = req.body;
     
-    if (!content) {
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return res.status(400).json({ message: 'Comment content is required' });
     }
     
-    const existingPost = await storage.getBlogPost(postId);
-    
-    if (!existingPost) {
-      return res.status(404).json({ message: 'Blog post not found' });
-    }
-    
-    const comment = await storage.createBlogComment({
-      blogPostId: postId,
-      userId: req.user!.id,
-      content
+    const commentData = insertBlogCommentSchema.parse({
+      blogPostId,
+      userId: req.user.id,
+      content: content.trim()
     });
     
-    // Get user info
-    const user = await storage.getUser(req.user!.id);
+    const comment = await storage.createBlogComment(commentData);
     
-    res.status(201).json({ 
-      comment: {
-        ...comment,
-        user: {
-          id: user?.id,
-          username: user?.username
-        }
-      } 
-    });
+    res.status(201).json({ comment });
   } catch (error) {
-    console.error('Error adding comment:', error);
-    res.status(500).json({ message: 'Error adding comment' });
+    console.error('Error creating comment:', error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: 'Invalid comment data', errors: error.errors });
+    } else {
+      res.status(500).json({ message: 'Error creating comment' });
+    }
   }
 });
 
-// GET /api/blog/categories - Get all blog categories
+// Get available categories
 router.get('/categories', async (req: Request, res: Response) => {
   try {
-    const categories = Object.values(blogPostCategoryEnum.enumValues);
+    // We have hardcoded categories in the database schema
+    const categories = [
+      'research', 
+      'analysis', 
+      'history', 
+      'cryptography', 
+      'language', 
+      'manuscript_features', 
+      'community'
+    ];
+    
     res.json({ categories });
   } catch (error) {
-    console.error('Error fetching blog categories:', error);
-    res.status(500).json({ message: 'Error fetching blog categories' });
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: 'Error fetching categories' });
   }
 });
 
-// GET /api/blog/topics - Get blog topic ideas
+// Get topic ideas
 router.get('/topics', async (req: Request, res: Response) => {
   try {
-    const category = typeof req.query.category === 'string' ? req.query.category : undefined;
-    const complexity = typeof req.query.complexity === 'string' ? req.query.complexity : undefined;
-    const status = req.query.status === 'all' ? undefined : 'available';
-    const pageId = req.query.pageId ? parseInt(req.query.pageId as string) : undefined;
-    const symbolId = req.query.symbolId ? parseInt(req.query.symbolId as string) : undefined;
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+    const category = req.query.category as string;
+    const complexity = req.query.complexity as string;
+    const status = 'available'; // Only show available topics
     
-    const topics = await storage.listBlogTopicIdeas({
+    const options = {
       category,
       complexity,
-      status,
-      pageId,
-      symbolId,
-      offset,
-      limit
-    });
+      status
+    };
+    
+    const topics = await storage.listBlogTopicIdeas(options);
     
     res.json({ topics });
   } catch (error) {
-    console.error('Error fetching blog topic ideas:', error);
-    res.status(500).json({ message: 'Error fetching blog topic ideas' });
+    console.error('Error fetching topic ideas:', error);
+    res.status(500).json({ message: 'Error fetching topic ideas' });
   }
 });
 
-// POST /api/blog/topics - Create a new blog topic idea (admin only)
+// Create a new topic idea (admin only)
 router.post('/topics', isAdmin, async (req: Request, res: Response) => {
   try {
-    const { 
-      title, 
-      category, 
-      description, 
-      promptTemplate, 
-      complexity = 'medium',
-      pageId,
-      symbolId
-    } = req.body;
-    
-    if (!title || !category || !description || !promptTemplate) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-    
-    const topic = await storage.createBlogTopicIdea({
-      title,
-      category,
-      description,
-      promptTemplate,
-      complexity,
-      pageId,
-      symbolId,
+    const topicData = insertBlogTopicIdeaSchema.parse({
+      ...req.body,
+      userId: req.user.id,
       status: 'available'
     });
     
+    const topic = await storage.createBlogTopicIdea(topicData);
+    
     res.status(201).json({ topic });
   } catch (error) {
-    console.error('Error creating blog topic idea:', error);
-    res.status(500).json({ message: 'Error creating blog topic idea' });
+    console.error('Error creating topic idea:', error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: 'Invalid topic data', errors: error.errors });
+    } else {
+      res.status(500).json({ message: 'Error creating topic idea' });
+    }
   }
 });
 
-// POST /api/blog/generate - Generate a blog post from a topic idea using AI (authenticated)
+// Generate blog post from topic idea
 router.post('/generate', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { topicId } = req.body;
@@ -493,58 +381,85 @@ router.post('/generate', isAuthenticated, async (req: Request, res: Response) =>
       return res.status(400).json({ message: 'Topic ID is required' });
     }
     
-    // Get the topic idea
-    const topic = await storage.getBlogTopicIdea(topicId);
+    const topic = await storage.getBlogTopicIdea(parseInt(topicId));
     
     if (!topic) {
       return res.status(404).json({ message: 'Topic idea not found' });
     }
     
-    if (topic.status !== 'available') {
-      return res.status(400).json({ message: 'This topic has already been generated or published' });
-    }
+    // For now, since we don't have the external LLM integration completed,
+    // let's create a sample blog post with basic content based on the topic
+    const title = topic.title;
+    const promptTemplate = topic.promptTemplate;
     
-    // Check if user has enough credits (we'll charge 3 credits for blog generation)
-    const BLOG_GENERATION_COST = 3;
-    const userCredits = await storage.getUserCredits(req.user!.id);
-    
-    if (userCredits < BLOG_GENERATION_COST) {
-      return res.status(402).json({ 
-        message: 'Insufficient credits', 
-        creditsNeeded: BLOG_GENERATION_COST,
-        creditsAvailable: userCredits
-      });
-    }
+    // Generate a slug from the title
+    const blogSlug = slug(title, { lower: true });
     
     // Create a draft blog post
-    const blogPost = await storage.autoGenerateBlogPostFromIdea(topicId, req.user!.id);
-    
-    // We'll implement the actual content generation in a separate step
-    // Here we're just returning the draft post
-    
-    res.json({ 
-      post: blogPost,
-      message: 'Blog post draft created. Content generation is in progress.' 
+    const post = await storage.createBlogPost({
+      title,
+      slug: blogSlug,
+      content: `<h1>${title}</h1>
+<p><em>This is an AI-generated blog post based on the topic: "${title}"</em></p>
+<p>The topic prompt was: "${promptTemplate}"</p>
+<h2>Introduction</h2>
+<p>The Voynich Manuscript has fascinated scholars, cryptographers, and enthusiasts for centuries. This enigmatic document, with its unknown script and puzzling illustrations, continues to be one of the world's most mysterious texts.</p>
+<h2>Main Content</h2>
+<p>The manuscript's unusual features include:</p>
+<ul>
+  <li>An undeciphered script that doesn't match any known writing system</li>
+  <li>Botanical illustrations that don't clearly correspond to real plants</li>
+  <li>Astronomical diagrams with peculiar circular patterns</li>
+  <li>Apparent "recipes" or formulations in certain sections</li>
+</ul>
+<p>Researchers have applied numerous techniques to understand this document, from traditional cryptographic approaches to modern computational methods. However, the manuscript has resisted all attempts at decipherment so far.</p>
+<h2>Analysis</h2>
+<p>What makes this topic particularly interesting is the intersection of various disciplines: linguistics, botany, astronomy, history, and cryptography. The manuscript doesn't fit neatly into any single category of medieval documents.</p>
+<p>Some theories suggest it might be:</p>
+<ol>
+  <li>An elaborate hoax</li>
+  <li>A constructed artificial language</li>
+  <li>An encrypted text in a natural language</li>
+  <li>A phonetic transcription of an unknown language</li>
+</ol>
+<h2>Conclusion</h2>
+<p>The mystery of the Voynich Manuscript endures precisely because it challenges our understanding of medieval knowledge and communication. As research continues with new technologies and approaches, we may yet unlock its secrets.</p>
+<p><em>This is a sample automatically generated post. The content should be reviewed and edited by a human before publishing.</em></p>`,
+      excerpt: `An exploration of ${title.toLowerCase()} showing how the unique features of the Voynich Manuscript continue to puzzle researchers.`,
+      category: topic.category,
+      tags: [topic.category, "voynich", "manuscript", "research"],
+      userId: req.user.id,
+      status: 'draft',
+      metaTitle: title,
+      metaDescription: `Learn about ${title.toLowerCase()} in this fascinating exploration of the Voynich Manuscript's mysteries.`
     });
+    
+    // Update the topic to mark it as used
+    await storage.updateBlogTopicIdea(topic.id, {
+      status: 'used',
+      generatedPostId: post.id
+    });
+    
+    res.json({ post });
   } catch (error) {
     console.error('Error generating blog post:', error);
     res.status(500).json({ message: 'Error generating blog post' });
   }
 });
 
-// POST /api/blog/upload - Upload an image for a blog post (authenticated)
+// Upload an image for a blog post
 router.post('/upload', isAuthenticated, upload.single('image'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No image file uploaded' });
     }
     
-    // Return the path to the uploaded file
-    const imagePath = `/uploads/blog/${req.file.filename}`;
+    const imageUrl = `/blog-images/${req.file.filename}`;
     
-    res.json({ 
-      imageUrl: imagePath,
+    res.json({
+      url: imageUrl,
       filename: req.file.filename,
+      originalname: req.file.originalname,
       size: req.file.size
     });
   } catch (error) {
@@ -553,33 +468,47 @@ router.post('/upload', isAuthenticated, upload.single('image'), async (req: Requ
   }
 });
 
-// GET /api/blog/dashboard - Get blog dashboard stats for the authenticated user
+// Get dashboard stats for a user's blog activity
 router.get('/dashboard', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    // Get user's posts
-    const userPosts = await storage.listBlogPosts({ userId: req.user!.id });
+    const userId = req.user.id;
     
-    // Count drafts, published, total views
-    const stats = {
-      totalPosts: userPosts.length,
-      publishedPosts: userPosts.filter(p => p.status === 'published').length,
-      draftPosts: userPosts.filter(p => p.status === 'draft').length,
-      totalViews: userPosts.reduce((sum, post) => sum + post.viewCount, 0),
-      totalShares: userPosts.reduce((sum, post) => sum + post.shareCount, 0),
-      totalUpvotes: userPosts.reduce((sum, post) => sum + post.upvotes, 0),
-      mostPopularPosts: userPosts
-        .sort((a, b) => b.viewCount - a.viewCount)
-        .slice(0, 5)
-        .map(p => ({ 
-          id: p.id, 
-          title: p.title, 
-          slug: p.slug, 
-          views: p.viewCount,
-          status: p.status
-        }))
-    };
+    // Get user's blog posts
+    const allPosts = await storage.listBlogPosts({ userId });
     
-    res.json({ stats });
+    // Group posts by status
+    const published = allPosts.filter(post => post.status === 'published');
+    const drafts = allPosts.filter(post => post.status === 'draft');
+    const archived = allPosts.filter(post => post.status === 'archived');
+    
+    // Calculate total views and shares
+    const totalViews = allPosts.reduce((sum, post) => sum + post.viewCount, 0);
+    const totalShares = allPosts.reduce((sum, post) => sum + post.shareCount, 0);
+    const totalUpvotes = allPosts.reduce((sum, post) => sum + post.upvotes, 0);
+    
+    // Get most viewed posts (top 5)
+    const mostViewed = [...allPosts]
+      .sort((a, b) => b.viewCount - a.viewCount)
+      .slice(0, 5);
+    
+    // Get most upvoted posts (top 5)
+    const mostUpvoted = [...allPosts]
+      .sort((a, b) => b.upvotes - a.upvotes)
+      .slice(0, 5);
+    
+    res.json({
+      stats: {
+        totalPosts: allPosts.length,
+        published: published.length,
+        drafts: drafts.length,
+        archived: archived.length,
+        totalViews,
+        totalShares,
+        totalUpvotes
+      },
+      mostViewed,
+      mostUpvoted
+    });
   } catch (error) {
     console.error('Error fetching blog dashboard:', error);
     res.status(500).json({ message: 'Error fetching blog dashboard' });
