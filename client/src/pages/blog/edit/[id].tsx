@@ -204,6 +204,46 @@ export default function EditBlogPost() {
     },
   });
   
+  // Content regeneration mutation
+  const regenerateMutation = useMutation({
+    mutationFn: async (params: { 
+      postId: number, 
+      section: string, 
+      currentData: { 
+        title: string, 
+        content: string, 
+        category: string, 
+        tags: string[] 
+      } 
+    }) => {
+      return apiRequest('/api/blog/regenerate', {
+        method: 'POST',
+        body: params
+      });
+    },
+    onSuccess: (data) => {
+      if (data?.content) {
+        setGeneratedContent(data.content);
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate content. Please try again.',
+          variant: 'destructive',
+        });
+      }
+      setIsGenerating(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'An error occurred during content generation.',
+        variant: 'destructive',
+      });
+      console.error('Error generating content:', error);
+      setIsGenerating(false);
+    }
+  });
+  
   // Function to generate a slug from the title
   function generateSlug(title: string) {
     const slug = title
@@ -243,6 +283,77 @@ export default function EditBlogPost() {
     
     setIsSubmitting(true);
     publishMutation.mutate();
+  }
+  
+  // Function to handle content regeneration with AI
+  function handleRegenerateContent() {
+    if (!postId) return;
+    
+    setIsGenerating(true);
+    
+    regenerateMutation.mutate({
+      postId,
+      section: regenerateSection,
+      currentData: {
+        title: form.getValues('title'),
+        content: form.getValues('content'),
+        category: form.getValues('category'),
+        tags: form.getValues('tags').split(',').map(tag => tag.trim()).filter(Boolean)
+      }
+    });
+  }
+  
+  // Function to handle accepting generated content
+  function handleAcceptContent() {
+    if (!generatedContent) return;
+    
+    // Update the form based on which section was regenerated
+    if (regenerateSection === 'all') {
+      form.setValue('content', generatedContent);
+    } else {
+      const currentContent = form.getValues('content');
+      
+      // Very simple content section detection - in a real app this would be more sophisticated
+      // with HTML parsing or section markers
+      if (regenerateSection === 'intro') {
+        // Replace the first paragraph or add at beginning
+        const parts = currentContent.split('</p>');
+        if (parts.length > 1) {
+          parts[0] = generatedContent;
+          form.setValue('content', parts.join('</p>'));
+        } else {
+          form.setValue('content', generatedContent + currentContent);
+        }
+      } else if (regenerateSection === 'conclusion') {
+        // Replace the last paragraph or add at end
+        const parts = currentContent.split('<p>');
+        if (parts.length > 1) {
+          parts[parts.length - 1] = generatedContent;
+          form.setValue('content', parts.join('<p>'));
+        } else {
+          form.setValue('content', currentContent + generatedContent);
+        }
+      } else if (regenerateSection === 'body') {
+        // Replace the middle content or insert after first paragraph
+        const paragraphs = currentContent.split('<p>').filter(p => p.trim());
+        if (paragraphs.length > 2) {
+          const firstPara = paragraphs[0];
+          const lastPara = paragraphs[paragraphs.length - 1];
+          form.setValue('content', `<p>${firstPara}${generatedContent}<p>${lastPara}`);
+        } else {
+          form.setValue('content', currentContent + generatedContent);
+        }
+      }
+    }
+    
+    // Close dialog and clear generated content
+    setGeneratedContent('');
+    setAiDialogOpen(false);
+    
+    toast({
+      title: 'Content Updated',
+      description: 'The AI-generated content has been added to your post.'
+    });
   }
   
   if (!user) {
@@ -622,6 +733,152 @@ export default function EditBlogPost() {
           </Form>
         </CardContent>
       </Card>
+
+      {/* AI Content Generation Dialog */}
+      <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Brain className="w-5 h-5 mr-2" />
+              AI-Assisted Content Generation
+            </DialogTitle>
+            <DialogDescription>
+              Use AI to generate or improve content for your blog post
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4">
+                <h3 className="font-semibold mb-2">What would you like to generate?</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input 
+                      type="radio" 
+                      id="intro" 
+                      name="section" 
+                      value="intro"
+                      checked={regenerateSection === 'intro'}
+                      onChange={() => setRegenerateSection('intro')}
+                      className="mr-2"
+                    />
+                    <label htmlFor="intro">Introduction</label>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input 
+                      type="radio" 
+                      id="body" 
+                      name="section" 
+                      value="body"
+                      checked={regenerateSection === 'body'}
+                      onChange={() => setRegenerateSection('body')}
+                      className="mr-2"
+                    />
+                    <label htmlFor="body">Main Content</label>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input 
+                      type="radio" 
+                      id="conclusion" 
+                      name="section" 
+                      value="conclusion"
+                      checked={regenerateSection === 'conclusion'}
+                      onChange={() => setRegenerateSection('conclusion')}
+                      className="mr-2"
+                    />
+                    <label htmlFor="conclusion">Conclusion</label>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input 
+                      type="radio" 
+                      id="all" 
+                      name="section" 
+                      value="all"
+                      checked={regenerateSection === 'all'}
+                      onChange={() => setRegenerateSection('all')}
+                      className="mr-2"
+                    />
+                    <label htmlFor="all">Entire Article</label>
+                  </div>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <Button
+                  onClick={handleRegenerateContent}
+                  disabled={isGenerating}
+                  className="w-full"
+                >
+                  {isGenerating ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span className="ml-2">Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Generate Content
+                    </>
+                  )}
+                </Button>
+              </Card>
+              
+              <Card className="p-4">
+                <h3 className="font-semibold mb-2">Smart Tips</h3>
+                <ul className="text-sm space-y-2 list-disc pl-4">
+                  <li>Choose specific sections for more targeted results</li>
+                  <li>AI works best with clear topic information</li>
+                  <li>Review and edit AI content before publishing</li>
+                  <li>Add personal insights to AI-generated content</li>
+                  <li>Use AI for research summaries and data analysis</li>
+                </ul>
+              </Card>
+            </div>
+            
+            {generatedContent && (
+              <Card className="p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold">Generated Content</h3>
+                  <div className="flex space-x-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleAcceptContent}
+                      className="flex items-center"
+                    >
+                      <ThumbsUp className="w-4 h-4 mr-1" />
+                      Accept
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setGeneratedContent('')}
+                      className="flex items-center"
+                    >
+                      <ThumbsDown className="w-4 h-4 mr-1" />
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-muted p-3 rounded-md max-h-[300px] overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono">
+                    {generatedContent}
+                  </pre>
+                </div>
+              </Card>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

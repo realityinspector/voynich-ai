@@ -468,4 +468,115 @@ router.get('/dashboard', isAuthenticated, async (req: Request, res: Response) =>
   }
 });
 
+// Content regeneration endpoint
+router.post('/regenerate', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const { postId, section, currentData } = req.body;
+    
+    if (!postId || !section || !currentData) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+    
+    // Get the existing post to verify ownership
+    const post = await storage.getBlogPost(postId);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+    
+    // Check if the user owns the post or is an admin
+    if (post.userId !== (req.user as any).id && (req.user as any).role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to regenerate content for this post' });
+    }
+    
+    // Generate content based on the section requested
+    let prompt = '';
+    let generatedContent = '';
+    
+    // Prepare the appropriate prompt based on the section
+    const { title, content, category, tags } = currentData;
+    
+    switch (section) {
+      case 'intro':
+        prompt = `Generate an engaging introduction for a scholarly blog post titled "${title}" in the category of ${category}. 
+                  The post is about the Voynich Manuscript and falls into these topics: ${tags.join(', ')}.
+                  Write only the introduction paragraph (with HTML formatting), and make it compelling and scholarly.`;
+        break;
+      case 'conclusion':
+        prompt = `Generate a thoughtful conclusion for a scholarly blog post titled "${title}" in the category of ${category}. 
+                  The post is about the Voynich Manuscript and covers these topics: ${tags.join(', ')}.
+                  Write only the conclusion paragraph (with HTML formatting), summarizing key points and offering final thoughts.`;
+        break;
+      case 'body':
+        prompt = `Generate the main content section for a scholarly blog post titled "${title}" in the category of ${category}. 
+                  The post is about the Voynich Manuscript and covers these topics: ${tags.join(', ')}.
+                  Write 2-3 well-structured paragraphs (with HTML formatting) that would form the main body of the article.
+                  Include relevant scholarly analysis and insights.`;
+        break;
+      case 'all':
+      default:
+        prompt = `Generate a complete scholarly blog post titled "${title}" in the category of ${category}. 
+                  The post is about the Voynich Manuscript and should cover these topics: ${tags.join(', ')}.
+                  Structure the content with proper HTML formatting (<p>, <h2>, <h3>, <ul>, <li> tags, etc.)
+                  Include an engaging introduction, 3-4 main content sections with headings, and a thoughtful conclusion.
+                  The tone should be academic but accessible, and the content should be informative and insightful.`;
+        break;
+    }
+    
+    // Use an AI service to generate the content based on the prompt
+    // This is a mock implementation. In a real app, you would use an AI API
+    // like OpenAI or a similar service to generate the content
+    
+    // Example format for a complete blog post
+    if (section === 'all') {
+      generatedContent = `
+<h2>Introduction to ${title}</h2>
+<p>The Voynich Manuscript continues to be one of history's most enduring enigmas. This article explores ${tags.join(', ')} in relation to this mysterious text, providing new insights into its complex nature.</p>
+
+<h2>Historical Context</h2>
+<p>The manuscript, dating from the early 15th century, has defied conventional analysis for generations. Scholars from various disciplines have attempted to decode its unusual script and understand its elaborate illustrations.</p>
+
+<h3>Prior Research</h3>
+<p>Previous studies in ${category} have established several important baselines for understanding the manuscript. However, many questions remain unanswered, particularly regarding the ${tags[0] || 'symbology'} found throughout the text.</p>
+
+<h2>Key Findings</h2>
+<p>Recent analysis reveals fascinating patterns in the manuscript's structure. The frequency and distribution of certain symbols suggest a sophisticated system of representation that may be tied to ${tags[1] || 'medieval scientific knowledge'}.</p>
+<ul>
+  <li>The manuscript contains repeating patterns that appear too structured to be random</li>
+  <li>Certain symbol combinations appear exclusively in specific sections</li>
+  <li>The visual elements show remarkable consistency throughout</li>
+</ul>
+
+<h2>Implications for Understanding the Manuscript</h2>
+<p>These observations have significant implications for how we interpret the Voynich Manuscript. Rather than dismissing it as a hoax or an indecipherable curiosity, this analysis suggests it represents a coherent system of knowledge, albeit one encoded in an unfamiliar notation system.</p>
+
+<h2>Conclusion</h2>
+<p>While complete translation remains elusive, this examination of ${title} provides valuable context for future research. By continuing to apply interdisciplinary methods and advanced analytical techniques, we move closer to understanding this remarkable artifact and its place in the history of human knowledge.</p>`;
+    } else if (section === 'intro') {
+      generatedContent = `<h2>Introduction to ${title}</h2>
+<p>The Voynich Manuscript continues to be one of history's most enduring enigmas. This article explores ${tags.join(', ')} in relation to this mysterious text, providing new insights into its complex nature. Scholars have long been fascinated by the manuscript's unusual characteristics, and this investigation contributes to the ongoing scholarly conversation by examining specific aspects that have received less attention in previous studies.</p>`;
+    } else if (section === 'conclusion') {
+      generatedContent = `<h2>Conclusion</h2>
+<p>While complete translation remains elusive, this examination of ${title} provides valuable context for future research. By continuing to apply interdisciplinary methods and advanced analytical techniques, we move closer to understanding this remarkable artifact and its place in the history of human knowledge. The convergence of ${tags.join(', ')} approaches may ultimately yield the breakthrough that researchers have sought for centuries.</p>`;
+    } else if (section === 'body') {
+      generatedContent = `<h2>Key Findings</h2>
+<p>Recent analysis reveals fascinating patterns in the manuscript's structure. The frequency and distribution of certain symbols suggest a sophisticated system of representation that may be tied to ${tags[1] || 'medieval scientific knowledge'}.</p>
+<ul>
+  <li>The manuscript contains repeating patterns that appear too structured to be random</li>
+  <li>Certain symbol combinations appear exclusively in specific sections</li>
+  <li>The visual elements show remarkable consistency throughout</li>
+</ul>
+
+<h2>Implications for Understanding the Manuscript</h2>
+<p>These observations have significant implications for how we interpret the Voynich Manuscript. Rather than dismissing it as a hoax or an indecipherable curiosity, this analysis suggests it represents a coherent system of knowledge, albeit one encoded in an unfamiliar notation system.</p>`;
+    }
+    
+    res.json({ content: generatedContent, section });
+    
+  } catch (error) {
+    console.error('Error regenerating content:', error);
+    res.status(500).json({ message: 'Error regenerating content' });
+  }
+});
+
 export default router;
