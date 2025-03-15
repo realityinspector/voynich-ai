@@ -18,7 +18,8 @@ import {
   Settings, 
   LogOut,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ScrollText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -194,6 +195,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, user }) => {
                 }`}>
                   <Images className="mr-3 h-5 w-5 text-secondary" />
                   Gallery
+                </div>
+              </Link>
+            </div>
+            
+            <div className="space-y-1">
+              <Link href="/blog">
+                <div className={`flex items-center w-full px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  location === '/blog' || location.startsWith('/blog/') 
+                    ? 'bg-primary-700 text-white font-semibold' 
+                    : 'text-white hover:bg-primary-700'
+                }`}>
+                  <ScrollText className="mr-3 h-5 w-5 text-secondary" />
+                  Blog
                 </div>
               </Link>
             </div>

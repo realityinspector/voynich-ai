@@ -22,6 +22,7 @@ import {
   CosmologicalSymbol, 
   PharmaceuticalSymbol 
 } from "@/components/VoynichSymbols";
+import BlogPreview from "@/components/BlogPreview";
 
 export default function Home() {
   return (
@@ -38,6 +39,9 @@ export default function Home() {
           <span className="text-xl font-semibold">Voynich Research Platform</span>
         </div>
         <nav className="ml-auto flex items-center gap-6">
+          <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+            Blog
+          </Link>
           <Link href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
             API Docs
           </Link>
@@ -559,6 +563,29 @@ fetchPage(42)
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Preview Section */}
+      <section className="px-6 py-20 bg-background border-t">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold font-heading mb-4">Latest from Our Blog</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explore the latest research, analyses, and discoveries about the Voynich Manuscript.
+            </p>
+          </div>
+          
+          <BlogPreview />
+          
+          <div className="mt-12 text-center">
+            <Link href="/blog">
+              <Button variant="outline" className="gap-2">
+                View All Articles
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
