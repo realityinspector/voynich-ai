@@ -314,8 +314,8 @@ async function addSamplePosts() {
         userId: author.id,
         viewCount: Math.floor(Math.random() * 100),
         upvotes: Math.floor(Math.random() * 20),
-        createdAt: new Date().toISOString(),
-        publishedAt: post.status === 'published' ? new Date().toISOString() : null
+        createdAt: new Date(),
+        publishedAt: post.status === 'published' ? new Date() : null
       });
       
       console.log(`Created blog post: ${created.title}`);
