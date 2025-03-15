@@ -100,10 +100,11 @@ router.get('/posts/:slug', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Blog post not found' });
     }
     
-    // Check if the post is not published and the user is not the author or admin
-    if (post.status !== 'published' && 
-        (!req.user || (req.user.id !== post.userId && req.user.role !== 'admin'))) {
-      return res.status(403).json({ message: 'You do not have permission to view this post' });
+    // Only restrict unpublished posts to the author/admin, but allow viewing published posts
+    if (post.status !== 'published') {
+      if (!req.user || (req.user.id !== post.userId && req.user.role !== 'admin')) {
+        return res.status(403).json({ message: 'This post is not published yet' });
+      }
     }
     
     // Increment view count
