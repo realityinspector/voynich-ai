@@ -7,9 +7,9 @@
  * the AI-assisted content generation and regeneration capabilities.
  */
 
-import { storage } from '../server/storage.js';
-import { eq } from 'drizzle-orm';
-import { users } from '../shared/schema.js';
+const { db } = require('../server/db');
+const { storage } = require('../server/storage');
+const { users, eq } = require('../shared/schema');
 
 const blogPosts = [
   {
@@ -279,7 +279,7 @@ const blogPosts = [
 async function addTwoMoreSamplePosts() {
   try {
     // Find admin user to set as the author
-    const allUsers = await storage.db.select().from(users);
+    const allUsers = await db.select().from(users);
     
     if (allUsers.length === 0) {
       console.log("No users found. Please create at least one user before running this script.");
