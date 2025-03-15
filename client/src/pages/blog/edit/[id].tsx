@@ -8,6 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
   Form,
@@ -29,12 +30,34 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Save, FileEdit, Eye, Sparkles, AlertTriangle } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Save, 
+  FileEdit, 
+  Eye, 
+  Sparkles, 
+  AlertTriangle, 
+  Wand2, 
+  RefreshCw,
+  Brain,
+  ThumbsUp,
+  ThumbsDown
+} from 'lucide-react';
 
 function LoadingSpinner({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sizeClasses = {
@@ -73,6 +96,10 @@ export default function EditBlogPost() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [regenerateSection, setRegenerateSection] = useState<'intro' | 'body' | 'conclusion' | 'all'>('all');
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -536,6 +563,16 @@ export default function EditBlogPost() {
               />
               
               <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setAiDialogOpen(true)}
+                  className="mr-auto"
+                >
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  AI Assist
+                </Button>
+
                 <Button
                   type="button"
                   variant="outline"
