@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Script to add two more sample blog posts for the Voynich Manuscript Analysis Platform
  * 
