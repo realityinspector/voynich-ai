@@ -21,6 +21,12 @@ import Upload from "@/pages/admin/upload";
 import Settings from "@/pages/admin/settings";
 import Credits from "@/pages/credits";
 
+// Import blog pages
+import BlogList from "@/pages/blog/index";
+import BlogPost from "@/pages/blog/[slug]";
+import BlogTopics from "@/pages/blog/topics";
+import EditBlogPost from "@/pages/blog/edit/[id]";
+
 // Import components
 import AppLayout from "@/components/layout/AppLayout";
 import PublicPageLayout from "@/components/layout/PublicPageLayout";
@@ -166,6 +172,31 @@ function Router() {
       <Route path="/credits">
         <AppLayout>
           <Credits />
+        </AppLayout>
+      </Route>
+      
+      {/* Blog routes */}
+      <Route path="/blog">
+        <AppLayout>
+          <BlogList />
+        </AppLayout>
+      </Route>
+      
+      <Route path="/blog/topics">
+        <AppLayout>
+          <BlogTopics />
+        </AppLayout>
+      </Route>
+      
+      <Route path="/blog/edit/:id">
+        <AppLayout>
+          <EditBlogPost />
+        </AppLayout>
+      </Route>
+      
+      <Route path="/blog/:slug">
+        <AppLayout>
+          <BlogPost />
         </AppLayout>
       </Route>
       
