@@ -50,10 +50,37 @@ export function useAuth() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await apiRequest('POST', '/api/auth/login', credentials);
-      // Parse the response immediately to avoid "body already read" errors
-      const data = await response.json();
-      return data;
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorMessage = 'Login failed';
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch (e) {
+            // If error text is not valid JSON, use it directly
+            errorMessage = errorText || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
     },
     onSuccess: async (data) => {
       await refetch();
@@ -63,7 +90,7 @@ export function useAuth() {
       });
       setLocation('/');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Login failed',
         description: error.message,
@@ -75,10 +102,37 @@ export function useAuth() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterCredentials) => {
-      const response = await apiRequest('POST', '/api/auth/register', credentials);
-      // Parse the response immediately to avoid "body already read" errors
-      const data = await response.json();
-      return data;
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorMessage = 'Registration failed';
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch (e) {
+            // If error text is not valid JSON, use it directly
+            errorMessage = errorText || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
+      }
     },
     onSuccess: async (data) => {
       await refetch();
@@ -88,7 +142,7 @@ export function useAuth() {
       });
       setLocation('/');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Registration failed',
         description: error.message,
@@ -100,9 +154,32 @@ export function useAuth() {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/auth/logout');
-      // Just return success status, no need to parse body for logout
-      return { success: response.ok };
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorMessage = 'Logout failed';
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch (e) {
+            // If error text is not valid JSON, use it directly
+            errorMessage = errorText || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.resetQueries();
@@ -112,7 +189,7 @@ export function useAuth() {
       });
       setLocation('/login');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Logout failed',
         description: error.message,
