@@ -19,6 +19,7 @@ import ApiDocs from "@/pages/api-docs";
 import PythonClient from "@/pages/python-client";
 import Upload from "@/pages/admin/upload";
 import Settings from "@/pages/admin/settings";
+import Testing from "@/pages/admin/testing";
 import Credits from "@/pages/credits";
 
 // Import blog pages
@@ -166,6 +167,12 @@ function Router() {
       <Route path="/admin/settings">
         <AppLayout>
           <Settings />
+        </AppLayout>
+      </Route>
+      
+      <Route path="/admin/testing">
+        <AppLayout>
+          <Testing />
         </AppLayout>
       </Route>
       
