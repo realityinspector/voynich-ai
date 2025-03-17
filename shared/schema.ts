@@ -3,6 +3,31 @@ import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 
+/**
+ * DATABASE SCHEMA - SAFE MIGRATION GUIDELINES FOR LLM AGENTS
+ * ===========================================================
+ * 
+ * [ATTENTION LLM AGENT] This file defines the database schema using Drizzle ORM.
+ * Follow these strict guidelines when modifying this file:
+ * 
+ * 1. DO NOT drop existing tables or columns - this will cause data loss
+ * 2. DO NOT modify existing column types - this may cause data loss
+ * 3. DO NOT rename existing tables or columns - this breaks relationships
+ * 4. DO add new tables and columns only in backward-compatible ways
+ * 
+ * When schema changes are needed:
+ * - For new features: Simply add new tables or nullable columns
+ * - For structure changes: Add new structures alongside old ones, then migrate data
+ * - For critical fixes: See the safe migration patterns in docs/DATABASE_MIGRATIONS.md
+ * 
+ * USE: npm run db:push - to apply schema changes
+ * AVOID: Destructive operations or manual database manipulation
+ * VERIFY: Changes do not result in data loss warnings from Drizzle
+ *
+ * REMEMBER: A safe schema change that preserves data is ALWAYS preferred
+ * over a "cleaner" but destructive change! Production data is irreplaceable.
+ */
+
 // User-related schemas
 export const userRoleEnum = pgEnum('user_role', ['admin', 'user', 'researcher']);
 

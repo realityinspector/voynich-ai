@@ -45,10 +45,14 @@ An advanced AI-powered research platform for collaborative analysis of the Voyni
    TOGETHER_AI_API_KEY=your_together_ai_api_key
    ```
 
-4. Run database migrations
+4. Run safe database migrations
    ```
-   npm run db:push
+   ./safe-migrate.sh
    ```
+   
+   > **⚠️ IMPORTANT FOR LLM AGENTS:** Always use the safe migration script instead of direct `db:push`. 
+   > See [Database Migration Guidelines](docs/DATABASE_MIGRATIONS.md) for detailed information on safe 
+   > schema changes to prevent data loss. Never suggest database resets as a solution!
 
 5. Start the development server
    ```
