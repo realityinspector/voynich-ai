@@ -24,8 +24,10 @@ export async function apiRequest(
   });
 
   if (!res.ok) {
-    console.error(`API Error: ${res.status} - ${await res.text().then(text => text.substring(0, 100))}`);
-    await throwIfResNotOk(res);
+    // Clone the response before reading the body to avoid "body already read" errors
+    const resClone = res.clone();
+    console.error(`API Error: ${res.status} - ${await resClone.text().then(text => text.substring(0, 100))}`);
+    await throwIfResNotOk(res.clone());
   } else {
     console.log(`API Success: ${method} ${url}`);
   }
@@ -53,12 +55,14 @@ export const getQueryFn: <T>(options: {
     }
     
     if (!res.ok) {
-      console.error(`Query error: ${res.status} - ${await res.text().catch(() => "Error reading response").then(text => text.substring(0, 100))}`);
+      // Clone the response before reading the body
+      const resClone = res.clone();
+      console.error(`Query error: ${res.status} - ${await resClone.text().catch(() => "Error reading response").then(text => text.substring(0, 100))}`);
     } else {
       console.log(`Query success: ${queryKey[0]}`);
     }
 
-    await throwIfResNotOk(res);
+    await throwIfResNotOk(res.clone());
     return await res.json();
   };
 
