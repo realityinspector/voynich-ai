@@ -49,26 +49,14 @@ export default function Login() {
     console.log("Login attempt with:", values.username);
     
     try {
-      // Show a manual toast for debugging
-      toast({
-        title: 'Login attempt',
-        description: `Attempting login with username: ${values.username}`,
-      });
-      
-      await login(values);
-      
-      // This will only execute if login doesn't throw an error
-      console.log("Login successful");
+      login(values);
+      // Note: Errors will be handled by the mutation's onError callback
+      // No need to try/catch here since we're just triggering the mutation
     } catch (error) {
-      console.error("Login error:", error);
+      // This should never execute since login just triggers the mutation
+      // But keeping it as a fallback
+      console.error("Unexpected login error:", error);
       setIsInvalid(true);
-      
-      // Show a manual toast for debugging
-      toast({
-        title: 'Login failed',
-        description: `Error: ${error instanceof Error ? error.message : String(error)}`,
-        variant: 'destructive'
-      });
     }
   };
   

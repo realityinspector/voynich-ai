@@ -50,10 +50,12 @@ export function useAuth() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      return apiRequest('POST', '/api/auth/login', credentials);
-    },
-    onSuccess: async (response) => {
+      const response = await apiRequest('POST', '/api/auth/login', credentials);
+      // Parse the response immediately to avoid "body already read" errors
       const data = await response.json();
+      return data;
+    },
+    onSuccess: async (data) => {
       await refetch();
       toast({
         title: 'Login successful',
@@ -73,10 +75,12 @@ export function useAuth() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterCredentials) => {
-      return apiRequest('POST', '/api/auth/register', credentials);
-    },
-    onSuccess: async (response) => {
+      const response = await apiRequest('POST', '/api/auth/register', credentials);
+      // Parse the response immediately to avoid "body already read" errors
       const data = await response.json();
+      return data;
+    },
+    onSuccess: async (data) => {
       await refetch();
       toast({
         title: 'Registration successful',
@@ -96,7 +100,9 @@ export function useAuth() {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/auth/logout');
+      const response = await apiRequest('POST', '/api/auth/logout');
+      // Just return success status, no need to parse body for logout
+      return { success: response.ok };
     },
     onSuccess: () => {
       queryClient.resetQueries();
