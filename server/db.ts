@@ -15,15 +15,22 @@ const getDatabaseUrl = () => {
   return dbUrl;
 };
 
+// Declare db at module level
+let sql;
+let db;
+
 try {
   // Use the DATABASE_URL environment variable
-  const sql = neon(getDatabaseUrl());
+  sql = neon(getDatabaseUrl());
   
   // Create a drizzle client with the schema
-  export const db = drizzle(sql, { schema });
+  db = drizzle(sql, { schema });
   
   console.log('Database connection established successfully');
 } catch (error) {
   console.error('Failed to initialize database connection:', error);
   throw new Error(`Error connecting to database: ${error.message}`);
 }
+
+// Export at module level
+export { db };
