@@ -1,5 +1,19 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Function to fetch API configuration from the server
+export async function fetchApiConfig() {
+  try {
+    const response = await fetch('/api/config');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch config: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching API config:', error);
+    return { STRIPE_PUBLIC_KEY: '' };
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;

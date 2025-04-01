@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, fetchApiConfig } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -31,14 +31,37 @@ import {
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+// Initialize Stripe with async configuration
+const getStripe = async () => {
+  try {
+    const config = await fetchApiConfig();
+    const stripePublicKey = config.STRIPE_PUBLIC_KEY;
+    
+    if (!stripePublicKey) {
+      console.warn('Stripe public key is not set. Payments will not work.');
+      return null;
+    }
+    
+    return await loadStripe(stripePublicKey);
+  } catch (error) {
+    console.error('Failed to initialize Stripe:', error);
+    return null;
+  }
+};
 
 export default function Credits() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedPackage, setSelectedPackage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [stripe, setStripe] = useState(null);
+  
+  // Initialize Stripe
+  useEffect(() => {
+    getStripe().then(stripeInstance => {
+      setStripe(stripeInstance);
+    });
+  }, []);
   
   // Fetch user's credits
   const { data: creditsData, isLoading: creditsLoading } = useQuery({

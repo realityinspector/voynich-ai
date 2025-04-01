@@ -54,6 +54,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Make uploads directory available
   app.use('/uploads', isAuthenticated, express.static(path.join(process.cwd(), 'uploads')));
   
+  // Add endpoint to expose public environment variables for the client
+  app.get('/api/config', (req, res) => {
+    res.json({
+      STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY || '',
+      // Add other public environment variables here
+    });
+  });
+  
   // API routes
   
   // Mount API routes
@@ -61,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/payments', paymentsRouter);
   app.use('/api/external', externalRouter);
   app.use('/api/blog', blogRouter);
-  app.use('/api/admin', adminRouter);
+  app.use('/api/admin', isAuthenticated, isAdmin, adminRouter);
   
   // Dashboard Statistics
   app.get('/api/stats/dashboard', isAuthenticated, async (req, res) => {

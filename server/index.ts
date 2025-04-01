@@ -3,6 +3,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import fs from "fs";
 import path from "path";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 const app = express();
 app.use(express.json());
@@ -15,6 +17,43 @@ console.log('Server starting with environment:', {
   PWD: process.cwd(),
   distExists: fs.existsSync(path.join(process.cwd(), 'dist')),
   publicExists: fs.existsSync(path.join(process.cwd(), 'dist', 'public'))
+});
+
+// Add health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    const result = await db.execute(sql`SELECT 1 as health`);
+    const dbConnected = result && result[0]?.health === 1;
+    
+    // List all environment variables (without sensitive values)
+    const envVars = Object.keys(process.env)
+      .filter(key => !key.toLowerCase().includes('key') && 
+               !key.toLowerCase().includes('secret') &&
+               !key.toLowerCase().includes('password') &&
+               !key.toLowerCase().includes('token'))
+      .reduce((acc, key) => {
+        acc[key] = process.env[key];
+        return acc;
+      }, {});
+    
+    return res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      db: dbConnected ? 'connected' : 'error',
+      environment: app.get('env'),
+      envVars
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      db: 'error',
+      error: error.message,
+      environment: app.get('env')
+    });
+  }
 });
 
 app.use((req, res, next) => {
