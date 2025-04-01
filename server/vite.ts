@@ -72,18 +72,45 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   const distPath = path.resolve(process.cwd(), "dist", "public");
+  const indexPath = path.join(distPath, "index.html");
+
+  // Verbose logging of paths
+  console.log('Static serving configuration:');
+  console.log('- Working directory:', process.cwd());
+  console.log('- Dist path:', distPath);
+  console.log('- Index path:', indexPath);
+  console.log('- Directory exists:', fs.existsSync(distPath));
+  console.log('- Index exists:', fs.existsSync(indexPath));
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
+      `Build directory not found: ${distPath}. Did the build complete successfully?`
     );
   }
 
-  // Serve static files
-  app.use(express.static(distPath));
+  if (!fs.existsSync(indexPath)) {
+    throw new Error(
+      `index.html not found at ${indexPath}. Build may be incomplete or incorrect.`
+    );
+  }
 
-  // Serve index.html for all routes (SPA support)
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
+  // List contents of dist directory
+  console.log('Contents of dist directory:');
+  console.log(fs.readdirSync(distPath));
+
+  // Serve static files
+  app.use(express.static(distPath, {
+    index: false // Disable automatic index.html serving
+  }));
+
+  // Explicit handler for index.html
+  app.get('*', (req, res) => {
+    console.log(`Serving index.html for path: ${req.path}`);
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        res.status(500).send('Error serving application');
+      }
+    });
   });
 }
