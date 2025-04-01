@@ -1,4 +1,4 @@
-# Voynich Research Platform
+# Voynich Research Platform 
 
 An advanced AI-powered research platform for collaborative analysis of the Voynich Manuscript. This open-source project combines cutting-edge AI technology with collaborative research tools to enable deeper analysis of one of history's most mysterious documents.
 
