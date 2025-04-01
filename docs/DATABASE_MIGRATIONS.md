@@ -55,7 +55,7 @@ After running a migration:
 
 ## LLM Agent Special Instructions
 
-If you are an LLM-based coding agent (like Replit Assistant or GitHub Copilot):
+If you are an LLM-based coding agent (like  Assistant or GitHub Copilot):
 
 1. Always prioritize data safety over schema elegance
 2. Never suggest destructive database operations

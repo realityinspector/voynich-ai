@@ -119,7 +119,7 @@ export default function ApiDocs() {
   // Example API calls
   const examples = {
     manuscript: `// Fetch a list of manuscript pages
-fetch('https://voynich-research.replit.app/api/pages', {
+fetch('https://voynich-ai-production.up.railway.app/api/pages', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -131,7 +131,7 @@ fetch('https://voynich-research.replit.app/api/pages', {
 .catch(error => console.error('Error:', error));`,
     
     symbols: `// Get symbols from a specific page
-fetch('https://voynich-research.replit.app/api/symbols/page/42', {
+fetch('https://voynich-ai-production.up.railway.app/api/symbols/page/42', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -143,7 +143,7 @@ fetch('https://voynich-research.replit.app/api/symbols/page/42', {
 .catch(error => console.error('Error:', error));`,
     
     analysis: `// Request an AI analysis
-fetch('https://voynich-research.replit.app/api/ai/analyze', {
+fetch('https://voynich-ai-production.up.railway.app/api/ai/analyze', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -235,7 +235,7 @@ fetch('https://voynich-research.replit.app/api/ai/analyze', {
                 
                 <div className="bg-neutral-50 p-4 rounded-md border border-neutral-200">
                   <code className="text-sm font-mono">
-                    https://voynich-research.replit.app/api
+                    https://voynich-ai-production.up.railway.app/api
                   </code>
                 </div>
               </div>

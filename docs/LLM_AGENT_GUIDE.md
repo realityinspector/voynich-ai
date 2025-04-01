@@ -1,6 +1,6 @@
 # LLM Agent Guide for Safe Database Operations
 
-## ATTENTION REPLIT AGENT OR OTHER LLM-BASED CODING ASSISTANTS
+## ATTENTION AGENT OR OTHER LLM-BASED CODING ASSISTANTS
 
 This document provides critical guidelines for safe database operations within this application. As an AI assistant, you should strictly adhere to these principles when suggesting or implementing code changes.
 

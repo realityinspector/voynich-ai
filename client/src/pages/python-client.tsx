@@ -382,8 +382,8 @@ def main():
     """Main function to parse arguments and run the example."""
     parser = argparse.ArgumentParser(description='Voynich API Example Usage')
     parser.add_argument('--api-key', required=True, help='Your API key')
-    parser.add_argument('--base-url', default='https://voynich-research.replit.app',
-                        help='Base URL of the API (default: https://voynich-research.replit.app)')
+    parser.add_argument('--base-url', default='https://voynich-ai-production.up.railway.app/',
+                        help='Base URL of the API (default: https://voynich-ai-production.up.railway.app/)')
     
     args = parser.parse_args()
     
@@ -505,7 +505,7 @@ if __name__ == '__main__':
 
 # Initialize the client
 client = VoynichApiClient(
-    base_url="https://voynich-research.replit.app",
+    base_url="https://voynich-ai-production.up.railway.app/",
     api_key="YOUR_API_KEY"
 )
 

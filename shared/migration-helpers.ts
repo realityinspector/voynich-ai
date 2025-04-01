@@ -2,7 +2,7 @@
  * DATABASE MIGRATION HELPERS
  * 
  * This module provides utilities and patterns for safe database schema migrations.
- * It is specifically designed to help LLM agents like Replit Assistant perform
+ * It is specifically designed to help LLM agents like AI Assistant perform
  * database changes without risking data loss.
  * 
  * IMPORTANT: This file should not be imported directly into application code.
