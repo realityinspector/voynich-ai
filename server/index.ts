@@ -74,13 +74,19 @@ process.on('unhandledRejection', (err) => {
       serveStatic(app);
     }
 
-    const port = process.env.PORT || 5000;
+    // Railway specifically uses port 8080 internally
+    const port = process.env.PORT || 8080; 
+    
+    console.log(`Attempting to listen on port ${port}. Railway port: ${process.env.PORT}`);
+    
     server.listen({
       port,
       host: "0.0.0.0",
-      reusePort: true,
     }, () => {
       log(`Server listening on port ${port} in ${app.get("env")} mode`);
+      
+      // Print all available environment variables for debugging
+      console.log('Available env vars:', Object.keys(process.env).filter(k => !k.includes('KEY') && !k.includes('SECRET') && !k.includes('TOKEN')));
     });
 
     server.on('error', (err) => {

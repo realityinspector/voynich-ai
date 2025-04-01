@@ -71,46 +71,60 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(process.cwd(), "dist", "public");
+  // Try multiple possible paths where static files might be located
+  const possiblePaths = [
+    path.resolve(process.cwd(), "dist", "public"),
+    path.resolve(process.cwd(), "public"),
+    path.resolve(__dirname, "..", "dist", "public"),
+    path.resolve(__dirname, "public"),
+    path.resolve("/app/dist/public"),
+  ];
+
+  console.log('Checking possible static file paths:');
+  possiblePaths.forEach(p => {
+    console.log(`- ${p}: ${fs.existsSync(p) ? 'EXISTS' : 'not found'}`);
+    if (fs.existsSync(p)) {
+      console.log(`  Contents: ${fs.readdirSync(p).join(', ')}`);
+    }
+  });
+
+  // Find the first path that exists
+  const distPath = possiblePaths.find(p => fs.existsSync(p));
+  
+  if (!distPath) {
+    throw new Error(`Could not find any valid static file directory. Checked: ${possiblePaths.join(', ')}`);
+  }
+  
+  console.log(`Using static file path: ${distPath}`);
+  
   const indexPath = path.join(distPath, "index.html");
-
-  // Verbose logging of paths
-  console.log('Static serving configuration:');
-  console.log('- Working directory:', process.cwd());
-  console.log('- Dist path:', distPath);
-  console.log('- Index path:', indexPath);
-  console.log('- Directory exists:', fs.existsSync(distPath));
-  console.log('- Index exists:', fs.existsSync(indexPath));
-
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Build directory not found: ${distPath}. Did the build complete successfully?`
-    );
-  }
-
+  
   if (!fs.existsSync(indexPath)) {
-    throw new Error(
-      `index.html not found at ${indexPath}. Build may be incomplete or incorrect.`
-    );
+    throw new Error(`index.html not found at ${indexPath}`);
   }
-
-  // List contents of dist directory
-  console.log('Contents of dist directory:');
-  console.log(fs.readdirSync(distPath));
-
-  // Serve static files
+  
+  // Serve static files with explicit caching headers
   app.use(express.static(distPath, {
-    index: false // Disable automatic index.html serving
+    index: false,
+    maxAge: '1h',
+    etag: true
   }));
-
-  // Explicit handler for index.html
+  
+  // Set up a specific route for the root path to ensure it always serves index.html
+  app.get('/', (req, res) => {
+    console.log('Serving index.html for root path');
+    res.sendFile(indexPath);
+  });
+  
+  // Catch-all route for SPA navigation
   app.get('*', (req, res) => {
     console.log(`Serving index.html for path: ${req.path}`);
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        console.error('Error serving index.html:', err);
-        res.status(500).send('Error serving application');
-      }
-    });
+    
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    res.sendFile(indexPath);
   });
 }
