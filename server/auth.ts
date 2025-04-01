@@ -12,16 +12,18 @@ const MemoryStore = createMemoryStore(session);
 
 // Express session middleware setup
 export function setupSession(app: express.Express) {
+  const isProduction = app.get("env") === "production";
+  
   app.use(
     session({
       secret: process.env.SESSION_SECRET || randomBytes(32).toString('hex'),
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: false, // Set to false for development
+        secure: isProduction, // Enable secure cookies in production
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: isProduction ? 'strict' : 'lax',
       },
       store: new MemoryStore({
         checkPeriod: 86400000, // 24 hours
