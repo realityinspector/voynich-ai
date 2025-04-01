@@ -2,7 +2,7 @@
 
 An advanced AI-powered research platform for collaborative analysis of the Voynich Manuscript. This open-source project combines cutting-edge AI technology with collaborative research tools to enable deeper analysis of one of history's most mysterious documents.
 
-## Features
+## Features 
 
 - **Manuscript Visualization**: Browse high-resolution manuscript pages with intuitive navigation
 - **Symbol Extraction & Analysis**: Identify and categorize manuscript symbols using computer vision
