@@ -20,8 +20,13 @@ let sql;
 let db;
 
 try {
-  // Use the DATABASE_URL environment variable
-  sql = neon(getDatabaseUrl());
+  // Use the DATABASE_URL environment variable with explicit configuration
+  const dbUrl = getDatabaseUrl();
+  sql = neon(dbUrl, { 
+    // Disable internal DNS resolution and use the provided URL directly
+    useSecureFetch: true,
+    fetchEndpoint: dbUrl
+  });
   
   // Create a drizzle client with the schema
   db = drizzle(sql, { schema });
