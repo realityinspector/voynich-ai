@@ -144,6 +144,19 @@ export function setupAuthRoutes(app: express.Express) {
     try {
       const { username, email, password, institution } = req.body;
       
+      // Added database connection test before registration
+      try {
+        // Simple ping test to check database connectivity
+        await storage.getUserByUsername("test_connection");
+        console.log("Database connection confirmed before registration");
+      } catch (dbError) {
+        console.error("Database connection error before registration:", dbError);
+        return res.status(500).json({ 
+          message: "Database connection error", 
+          details: "Unable to connect to database. Please try again later or contact support."
+        });
+      }
+      
       // Check if username or email already exists
       const existingUsername = await storage.getUserByUsername(username);
       if (existingUsername) {
@@ -182,6 +195,11 @@ export function setupAuthRoutes(app: express.Express) {
         return res.json({ user: safeUser });
       });
     } catch (error) {
+      console.error("Registration error:", error);
+      // More detailed error response
+      if (error.message && error.message.includes("database")) {
+        return res.status(500).json({ message: `Error connecting to database: ${error.message}` });
+      }
       next(error);
     }
   });

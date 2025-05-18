@@ -10,16 +10,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add startup diagnostics
+// Add startup diagnostics with more database info
 console.log('Server starting with environment:', {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
   PWD: process.cwd(),
+  DATABASE_URL_SET: !!process.env.DATABASE_URL,
+  DATABASE_URL_PREFIX: process.env.DATABASE_URL ? process.env.DATABASE_URL.split(':')[0] : 'not-set',
   distExists: fs.existsSync(path.join(process.cwd(), 'dist')),
   publicExists: fs.existsSync(path.join(process.cwd(), 'dist', 'public'))
 });
 
-// Add health check endpoint
+// Add enhanced health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
     // Test database connection
@@ -37,20 +39,40 @@ app.get('/api/health', async (req, res) => {
         return acc;
       }, {});
     
+    // Add more detailed info about database connection
+    const dbInfo = {
+      connected: dbConnected,
+      url_protocol: process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL).protocol : 'unknown',
+      url_host_type: process.env.DATABASE_URL ? 
+        (process.env.DATABASE_URL.includes('railway.internal') ? 'railway-internal' : 
+         process.env.DATABASE_URL.includes('railway.app') ? 'railway-public' : 'other') : 'unknown'
+    };
+    
     return res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
       db: dbConnected ? 'connected' : 'error',
+      dbDetails: dbInfo,
       environment: app.get('env'),
       envVars
     });
   } catch (error) {
     console.error('Health check failed:', error);
+    
+    // More detailed error information
+    const errorDetails = {
+      message: error.message,
+      name: error.name,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      cause: error.cause ? error.cause.toString() : undefined
+    };
+    
     return res.status(500).json({
       status: 'error',
       timestamp: new Date().toISOString(),
       db: 'error',
       error: error.message,
+      errorDetails,
       environment: app.get('env')
     });
   }
@@ -86,25 +108,60 @@ app.use((req, res, next) => {
   next();
 });
 
+// Additional error handlers
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
-  process.exit(1);
+  // Don't exit immediately in production to allow for recovery
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
-  process.exit(1);
+  // Don't exit immediately in production to allow for recovery
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+});
+
+// Fallback route for database connection errors
+app.use('/api/database-error', (req, res) => {
+  res.status(503).json({
+    message: 'Database connection error',
+    details: 'The application is having trouble connecting to the database. Please try again later.',
+    timestamp: new Date().toISOString()
+  });
 });
 
 (async () => {
   try {
+    // Test database connection before registering routes
+    try {
+      await db.execute(sql`SELECT 1 as test`);
+      console.log('Initial database connection test successful');
+    } catch (dbError) {
+      console.error('Initial database connection test failed:', dbError);
+      // Continue anyway to let the application handle DB errors gracefully
+    }
+    
     const server = await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       console.error('Express error handler:', err);
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
+      
+      // Add better error details
+      const errorDetails = process.env.NODE_ENV === 'development' ? {
+        stack: err.stack,
+        cause: err.cause ? err.cause.toString() : undefined
+      } : undefined;
+      
+      res.status(status).json({ 
+        message,
+        ...(errorDetails ? { details: errorDetails } : {})
+      });
     });
 
     if (app.get("env") === "development") {
@@ -130,10 +187,14 @@ process.on('unhandledRejection', (err) => {
 
     server.on('error', (err) => {
       console.error('Server error:', err);
-      process.exit(1);
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      }
     });
   } catch (err) {
     console.error('Failed to start server:', err);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
 })();
