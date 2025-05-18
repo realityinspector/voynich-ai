@@ -51,7 +51,7 @@ let db;
 
 // Initialize database with retries
 const initDatabase = async (retryCount = 0) => {
-  try {
+try {
     // Get database URL
     const dbUrl = getDatabaseUrl();
     
@@ -63,11 +63,11 @@ const initDatabase = async (retryCount = 0) => {
     // Test the connection
     await sql`SELECT 1 as test`;
     console.log('Database connection test successful');
-    
-    // Create a drizzle client with the schema
-    db = drizzle(sql, { schema });
-    
-    console.log('Database connection established successfully');
+  
+  // Create a drizzle client with the schema
+  db = drizzle(sql, { schema });
+  
+  console.log('Database connection established successfully');
     return true;
   } catch (error) {
     console.error(`Database connection attempt ${retryCount + 1} failed:`, error);

@@ -10,6 +10,72 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add CORS middleware for cross-domain requests
+app.use((req, res, next) => {
+  // Allow requests from voynichapi.com domain
+  const allowedOrigins = [
+    'https://voynichapi.com', 
+    'http://voynichapi.com', 
+    'https://www.voynichapi.com',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // For Railway domains and other trusted sources
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  // Allow credentials to be sent with requests
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Allow specific headers
+  res.setHeader('Access-Control-Allow-Headers', 
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Allow specific methods
+  res.setHeader('Access-Control-Allow-Methods', 
+    'GET, POST, PUT, DELETE, OPTIONS');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
+// Add simple API endpoint mapping to help debug route issues
+app.get('/api/routes', (req, res) => {
+  // Get list of registered routes for debugging
+  const routes = [];
+  
+  // For standard Express routes
+  app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+      // Routes registered directly on the app
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods).join(', ').toUpperCase()
+      });
+    } else if (middleware.name === 'router') {
+      // Router middleware
+      middleware.handle.stack.forEach(handler => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            methods: Object.keys(handler.route.methods).join(', ').toUpperCase()
+          });
+        }
+      });
+    }
+  });
+  
+  res.json({ routes });
+});
+
 // Add startup diagnostics with more database info
 console.log('Server starting with environment:', {
   NODE_ENV: process.env.NODE_ENV,
@@ -113,7 +179,7 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   // Don't exit immediately in production to allow for recovery
   if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
+  process.exit(1);
   }
 });
 
@@ -121,7 +187,7 @@ process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
   // Don't exit immediately in production to allow for recovery
   if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
+  process.exit(1);
   }
 });
 
@@ -188,13 +254,13 @@ app.use('/api/database-error', (req, res) => {
     server.on('error', (err) => {
       console.error('Server error:', err);
       if (process.env.NODE_ENV !== 'production') {
-        process.exit(1);
+      process.exit(1);
       }
     });
   } catch (err) {
     console.error('Failed to start server:', err);
     if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
+    process.exit(1);
     }
   }
 })();

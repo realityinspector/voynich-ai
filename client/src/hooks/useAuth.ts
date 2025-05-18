@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest, queryClient, buildApiUrl } from '@/lib/queryClient';
 import { useToast } from './use-toast';
 import { useLocation } from 'wouter';
 
@@ -51,7 +51,7 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       try {
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch(buildApiUrl('/api/auth/login'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ export function useAuth() {
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterCredentials) => {
       try {
-        const response = await fetch('/api/auth/register', {
+        const response = await fetch(buildApiUrl('/api/auth/register'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       try {
-        const response = await fetch('/api/auth/logout', {
+        const response = await fetch(buildApiUrl('/api/auth/logout'), {
           method: 'POST',
           credentials: 'include',
         });

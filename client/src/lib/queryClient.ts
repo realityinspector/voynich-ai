@@ -1,9 +1,34 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Function to get base API URL - handles production vs. development environments
+export function getBaseApiUrl(): string {
+  // For client-side code
+  if (typeof window !== 'undefined') {
+    // Check if we're on the actual production domain
+    if (window.location.hostname === 'voynichapi.com') {
+      return 'https://voynich-ai-production.up.railway.app';
+    }
+    
+    // For other environments, use relative URLs (works with Railway's domain)
+    return '';
+  }
+  
+  // For server-side code, default to empty (relative URLs)
+  return '';
+}
+
+// Helper to construct API URLs
+export function buildApiUrl(path: string): string {
+  const baseUrl = getBaseApiUrl();
+  // Ensure path starts with /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
 // Function to fetch API configuration from the server
 export async function fetchApiConfig() {
   try {
-    const response = await fetch('/api/config');
+    const response = await fetch(buildApiUrl('/api/config'));
     if (!response.ok) {
       throw new Error(`Failed to fetch config: ${response.status}`);
     }
@@ -26,9 +51,10 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  console.log(`API Request: ${method} ${url}`);
+  const apiUrl = buildApiUrl(url);
+  console.log(`API Request: ${method} ${apiUrl}`);
   
-  const res = await fetch(url, {
+  const res = await fetch(apiUrl, {
     method,
     headers: {
       ...(data ? { "Content-Type": "application/json" } : {}),
@@ -43,7 +69,7 @@ export async function apiRequest(
     console.error(`API Error: ${res.status} - ${await resClone.text().then(text => text.substring(0, 100))}`);
     await throwIfResNotOk(res.clone());
   } else {
-    console.log(`API Success: ${method} ${url}`);
+    console.log(`API Success: ${method} ${apiUrl}`);
   }
   
   return res;
@@ -55,14 +81,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    console.log(`Query request: ${queryKey[0]}`);
+    const apiUrl = buildApiUrl(queryKey[0] as string);
+    console.log(`Query request: ${apiUrl}`);
     
-    const res = await fetch(queryKey[0] as string, {
+    const res = await fetch(apiUrl, {
       credentials: "include",
     });
 
     if (res.status === 401) {
-      console.warn(`Auth 401 error for ${queryKey[0]}`);
+      console.warn(`Auth 401 error for ${apiUrl}`);
       if (unauthorizedBehavior === "returnNull") {
         return null;
       }
@@ -73,7 +100,7 @@ export const getQueryFn: <T>(options: {
       const resClone = res.clone();
       console.error(`Query error: ${res.status} - ${await resClone.text().catch(() => "Error reading response").then(text => text.substring(0, 100))}`);
     } else {
-      console.log(`Query success: ${queryKey[0]}`);
+      console.log(`Query success: ${apiUrl}`);
     }
 
     await throwIfResNotOk(res.clone());
